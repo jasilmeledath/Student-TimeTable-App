@@ -2,6 +2,11 @@
 
 A Node.js + Express + EJS web application for managing student timetables with an Apple Calendar-style interface.
 
+## 📖 Backstory
+
+As a student, I found it frustrating to navigate through a large, combined PDF timetable shared by my university. It made it hard to find my daily schedule quickly. So I built this app to simplify the process — allowing students to log in and view just their personalized timetable in an interactive, organized format.
+
+
 ## 🚀 Features
 
 - **Authentication System**
