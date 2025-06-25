@@ -1,7 +1,6 @@
 // seedTimetable.js
 require('dotenv').config();
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
 const logger = require('../helpers/logger');
@@ -36,6 +35,29 @@ const loadJSONFile = (filePath) => {
   }
 };
 
+const findTimetableEntry = (courseCode, timetableData) => {
+  // Try exact match first
+  let entry = timetableData.find(t => 
+    t.course_code === courseCode || 
+    t.batch_course_code === courseCode
+  );
+
+  if (!entry) {
+    // Try matching with combined courses
+    entry = timetableData.find(t => {
+      const combinedCodes = [
+        t.course_code.split('+').map(c => c.trim()),
+        t.course_code.split(' + ').map(c => c.trim()),
+        t.batch_course_code.split('+').map(c => c.trim()),
+        t.batch_course_code.split(' + ').map(c => c.trim())
+      ].flat();
+      return combinedCodes.includes(courseCode);
+    });
+  }
+
+  return entry;
+};
+
 const processStudentData = (studentsData, timetableData) => {
   // Group student data by studentId
   const studentMap = studentsData.reduce((acc, record) => {
@@ -58,26 +80,29 @@ const processStudentData = (studentsData, timetableData) => {
     const courseCode = record['Course Code'];
     if (!courseCode) return acc; // Skip records without course code
 
-    const timetableEntry = timetableData.find(t => 
-      t.course_code === courseCode || 
-      t.batch_course_code === courseCode
-    );
+    const timetableEntry = findTimetableEntry(courseCode, timetableData);
 
     if (timetableEntry) {
-      acc[studentId].courses.push({
-        courseCode: courseCode,
-        courseName: record['Course Name'] || 'Unknown Course',
-        batchCourseCode: timetableEntry.batch_course_code || courseCode,
-        faculty: timetableEntry.faculty || 'TBD',
-        venue: timetableEntry.venue || 'TBD',
-        schedule: {
-          Monday: processPeriods(timetableEntry.Monday),
-          Tuesday: processPeriods(timetableEntry.Tuesday),
-          Wednesday: processPeriods(timetableEntry.Wednesday),
-          Thursday: processPeriods(timetableEntry.Thursday),
-          Friday: processPeriods(timetableEntry.Friday)
-        }
-      });
+      // Check if course is already added to avoid duplicates
+      const courseExists = acc[studentId].courses.some(c => c.courseCode === courseCode);
+      if (!courseExists) {
+        acc[studentId].courses.push({
+          courseCode: courseCode,
+          courseName: record['Course Name'] || 'Unknown Course',
+          batchCourseCode: timetableEntry.batch_course_code || courseCode,
+          faculty: timetableEntry.faculty || 'TBD',
+          venue: timetableEntry.venue || 'TBD',
+          schedule: {
+            Monday: processPeriods(timetableEntry.Monday),
+            Tuesday: processPeriods(timetableEntry.Tuesday),
+            Wednesday: processPeriods(timetableEntry.Wednesday),
+            Thursday: processPeriods(timetableEntry.Thursday),
+            Friday: processPeriods(timetableEntry.Friday)
+          }
+        });
+      }
+    } else {
+      logger.warn(`No timetable entry found for course: ${courseCode}`);
     }
 
     return acc;
@@ -131,22 +156,21 @@ const seed = async () => {
     // Process and transform the data
     const processedData = processStudentData(studentsData, timetableData);
 
-    // Hash default password for students
+    // Set default password for students
     const defaultPassword = process.env.DEFAULT_STUDENT_PASSWORD || 'passme@123';
-    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
     // Add password to each student
     const studentsToInsert = processedData.map(student => ({
       ...student,
-      password: hashedPassword,
+      password: defaultPassword,
       isFirstLogin: true
     }));
 
-    // Insert new data in batches to avoid memory issues
+    // Insert new data in batches using create to ensure middleware runs
     const batchSize = 100;
     for (let i = 0; i < studentsToInsert.length; i += batchSize) {
       const batch = studentsToInsert.slice(i, i + batchSize);
-      await Student.insertMany(batch);
+      await Promise.all(batch.map(student => Student.create(student)));
       logger.info(`Seeded students ${i + 1} to ${Math.min(i + batchSize, studentsToInsert.length)}`);
     }
     logger.info(`Total students seeded: ${studentsToInsert.length}`);

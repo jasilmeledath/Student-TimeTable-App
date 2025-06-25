@@ -3,7 +3,7 @@ const router = express.Router();
 const logger = require('../helpers/logger');
 
 const authController = require('../controllers/auth/authController');
-const { preventReLogin } = require('../middleware/authMiddleware');
+const { preventReLogin, checkAuth } = require('../middleware/authMiddleware');
 const {
   loginValidation,
   passwordChangeValidation,
@@ -29,15 +29,17 @@ router.post('/login',
 );
 
 // Password change routes
-router.get('/change-password', (req, res) => {
+router.get('/change-password', checkAuth, (req, res) => {
   res.render('auth/change-password', {
     title: 'Change Password',
     layout: 'layouts/auth',
-    script: '' // Add empty script to prevent undefined error
+    script: '', // Add empty script to prevent undefined error
+    user: req.session.user
   });
 });
 
 router.post('/change-password',
+  checkAuth,
   passwordChangeValidation,
   handleValidationErrors,
   authController.changePassword

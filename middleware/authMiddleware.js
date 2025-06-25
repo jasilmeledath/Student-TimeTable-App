@@ -12,6 +12,8 @@ exports.checkAuth = (req, res, next) => {
     req.flash('error_msg', 'Please log in to access this resource');
     return res.redirect('/auth/login');
   }
+  // Set req.user from session data
+  req.user = req.session.user;
   next();
 };
 

@@ -1,105 +1,523 @@
-<%- include('../layouts/main', { title: 'My Timetable' }) %>
+<%- contentFor('body') %>
 
-<div class="container mt-4">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">My Timetable</h3>
-          <div class="student-info mt-2">
-            <p class="mb-1"><strong>Student ID:</strong> <span id="studentId"></span></p>
-            <p class="mb-1"><strong>Name:</strong> <span id="studentName"></span></p>
-            <p class="mb-1"><strong>Department:</strong> <span id="department"></span></p>
-            <p class="mb-0"><strong>Program:</strong> <span id="program"></span></p>
-          </div>
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+  <!-- Header Section -->
+  <div class="bg-white shadow-sm border-b border-gray-100">
+    <div class="max-w-md mx-auto px-4 py-4">
+      <!-- Day Navigation -->
+      <div class="flex items-center justify-between mb-4">
+        <a href="/student/timetable?day=<%= previousDay %>" 
+           class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-200 active:scale-95">
+          <i class="fas fa-chevron-left text-sm"></i>
+        </a>
+        
+        <div class="text-center">
+          <h1 class="text-lg font-semibold text-gray-900"><%= currentDay %></h1>
+          <p class="text-xs text-gray-500 mt-1" id="current-date"></p>
         </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Period</th>
-                  <th>Monday</th>
-                  <th>Tuesday</th>
-                  <th>Wednesday</th>
-                  <th>Thursday</th>
-                  <th>Friday</th>
-                </tr>
-              </thead>
-              <tbody id="timetableBody">
-                <!-- Timetable will be populated here -->
-              </tbody>
-            </table>
+        
+        <a href="/student/timetable?day=<%= nextDay %>" 
+           class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-200 active:scale-95">
+          <i class="fas fa-chevron-right text-sm"></i>
+        </a>
+      </div>
+
+      <!-- Student Info Card -->
+      <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-4 text-white">
+        <div class="flex items-center space-x-3">
+          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <i class="fas fa-user text-lg"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h2 class="font-semibold text-base truncate"><%= student.name %></h2>
+            <p class="text-blue-100 text-sm opacity-90">
+              <%= student.program %> • <%= student.department %>
+            </p>
+            <p class="text-blue-100 text-xs opacity-75">Batch <%= student.batch %></p>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Schedule Content -->
+  <div class="max-w-md mx-auto px-4 py-6">
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <div class="bg-white rounded-xl p-3 text-center shadow-sm">
+        <div class="text-lg font-bold text-green-600" id="total-classes">0</div>
+        <div class="text-xs text-gray-500">Classes</div>
+      </div>
+      <div class="bg-white rounded-xl p-3 text-center shadow-sm">
+        <div class="text-lg font-bold text-blue-600" id="free-periods">0</div>
+        <div class="text-xs text-gray-500">Free</div>
+      </div>
+      <div class="bg-white rounded-xl p-3 text-center shadow-sm">
+        <div class="text-lg font-bold text-purple-600" id="next-class">--</div>
+        <div class="text-xs text-gray-500">Next</div>
+      </div>
+    </div>
+
+    <!-- Schedule Timeline -->
+    <div class="space-y-3">
+      <% schedule.forEach(function(slot, index) { %>
+        <div class="schedule-item <%= slot.isEmpty ? 'empty-slot' : 'active-slot' %>" data-period="<%= slot.period %>">
+          <!-- Time Indicator -->
+          <div class="flex items-start space-x-4">
+            <div class="flex-shrink-0 w-16 pt-1">
+              <div class="text-sm font-medium text-gray-900"><%= slot.time.start %></div>
+              <div class="text-xs text-gray-500"><%= slot.time.end %></div>
+              <div class="text-xs text-blue-600 font-medium mt-1">P<%= slot.period %></div>
+            </div>
+
+            <!-- Content Card -->
+            <div class="flex-1 min-w-0">
+              <% if (!slot.isEmpty) { %>
+                <!-- Active Class -->
+                <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow duration-200">
+                  <div class="flex items-start justify-between mb-2">
+                    <div class="flex-1 min-w-0">
+                      <h3 class="font-semibold text-gray-900 text-sm truncate"><%= slot.courseCode %></h3>
+                      <p class="text-gray-700 text-sm mt-1 leading-relaxed"><%= slot.courseName %></p>
+                    </div>
+                    <div class="ml-2 flex-shrink-0">
+                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Active
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-2 mt-3">
+                    <div class="flex items-center text-sm text-gray-600">
+                      <i class="fas fa-map-marker-alt w-4 text-red-500"></i>
+                      <span class="ml-2"><%= slot.venue %></span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-600">
+                      <i class="fas fa-chalkboard-teacher w-4 text-green-500"></i>
+                      <span class="ml-2"><%= slot.faculty %></span>
+                    </div>
+                  </div>
+                </div>
+              <% } else { %>
+                <!-- Free Period -->
+                <div class="bg-gray-50 rounded-xl p-4 border-2 border-dashed border-gray-200">
+                  <div class="text-center">
+                    <i class="fas fa-coffee text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-500 text-sm font-medium">Free Period</p>
+                    <p class="text-gray-400 text-xs mt-1">Take a break!</p>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+
+    <!-- Empty State -->
+    <% if (schedule.length === 0) { %>
+      <div class="text-center py-12">
+        <i class="fas fa-calendar-times text-4xl text-gray-300 mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No Classes Today</h3>
+        <p class="text-gray-500">Enjoy your free day!</p>
+      </div>
+    <% } %>
+
+    <!-- Quick Actions -->
+    <div class="mt-8 bg-white rounded-2xl p-4 shadow-sm">
+      <h3 class="font-semibold text-gray-900 mb-3 text-sm">Quick Actions</h3>
+      <div class="grid grid-cols-2 gap-3">
+        <a href="/student/subjects" class="flex items-center justify-center p-3 bg-blue-50 rounded-xl text-blue-600 hover:bg-blue-100 transition-colors duration-200">
+          <i class="fas fa-book mr-2"></i>
+          <span class="text-sm font-medium">My Subjects</span>
+        </a>
+        <a href="/student/calendar" class="flex items-center justify-center p-3 bg-green-50 rounded-xl text-green-600 hover:bg-green-100 transition-colors duration-200">
+          <i class="fas fa-calendar mr-2"></i>
+          <span class="text-sm font-medium">Full Calendar</span>
+        </a>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    const response = await fetch('/student/timetable');
-    const result = await response.json();
-
-    if (result.success) {
-      const { studentInfo, timetable } = result.data;
-
-      // Update student info
-      document.getElementById('studentId').textContent = studentInfo.studentId;
-      document.getElementById('studentName').textContent = studentInfo.name;
-      document.getElementById('department').textContent = studentInfo.department;
-      document.getElementById('program').textContent = studentInfo.program;
-
-      // Find max periods across all days
-      const maxPeriods = Math.max(
-        ...Object.values(timetable).map(day => day.length)
-      );
-
-      // Generate timetable rows
-      const tbody = document.getElementById('timetableBody');
-      tbody.innerHTML = '';
-
-      for (let period = 0; period < maxPeriods; period++) {
-        const row = document.createElement('tr');
-        
-        // Add period number
-        const periodCell = document.createElement('td');
-        periodCell.textContent = `Period ${period + 1}`;
-        row.appendChild(periodCell);
-
-        // Add cells for each day
-        ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
-          const cell = document.createElement('td');
-          const courseData = timetable[day][period];
-
-          if (courseData) {
-            cell.innerHTML = `
-              <strong>${courseData.courseCode}</strong><br>
-              ${courseData.courseName}<br>
-              <small>
-                <i class="fas fa-chalkboard-teacher"></i> ${courseData.faculty}<br>
-                <i class="fas fa-map-marker-alt"></i> ${courseData.venue}
-              </small>
-            `;
-          } else {
-            cell.textContent = '-';
-          }
-
-          row.appendChild(cell);
-        });
-
-        tbody.appendChild(row);
-      }
-    } else {
-      throw new Error(result.message);
-    }
-  } catch (error) {
-    console.error('Error loading timetable:', error);
-    alert('Failed to load timetable. Please try again later.');
+<%- contentFor('style') %>
+<style>
+  /* Custom animations and interactions */
+  .schedule-item {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideInUp 0.3s ease-out forwards;
   }
+
+  .schedule-item:nth-child(1) { animation-delay: 0.1s; }
+  .schedule-item:nth-child(2) { animation-delay: 0.2s; }
+  .schedule-item:nth-child(3) { animation-delay: 0.3s; }
+  .schedule-item:nth-child(4) { animation-delay: 0.4s; }
+  .schedule-item:nth-child(5) { animation-delay: 0.5s; }
+  .schedule-item:nth-child(6) { animation-delay: 0.6s; }
+  .schedule-item:nth-child(7) { animation-delay: 0.7s; }
+  .schedule-item:nth-child(8) { animation-delay: 0.8s; }
+
+  @keyframes slideInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Current time indicator */
+  .current-time-indicator {
+    position: relative;
+  }
+
+  .current-time-indicator::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    background-color: #ef4444;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.1);
+    }
+  }
+
+  /* Touch feedback */
+  .active-slot:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease-out;
+  }
+
+  /* Swipe indicator */
+  .swipe-indicator {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .swipe-indicator.left {
+    left: 20px;
+  }
+
+  .swipe-indicator.right {
+    right: 20px;
+  }
+
+  .swipe-indicator.show {
+    opacity: 1;
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+
+  @keyframes loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 380px) {
+    .grid-cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+    
+    .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+      margin-left: 0.75rem;
+    }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .bg-gradient-to-br {
+      background: linear-gradient(to bottom right, #1f2937, #111827);
+    }
+  }
+</style>
+
+<%- contentFor('script') %>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize the timetable
+  initializeTimetable();
+  
+  // Set up swipe navigation
+  setupSwipeNavigation();
+  
+  // Update current date
+  updateCurrentDate();
+  
+  // Calculate and display stats
+  calculateStats();
+  
+  // Highlight current time slot
+  highlightCurrentTimeSlot();
+  
+  // Set up periodic updates
+  setInterval(highlightCurrentTimeSlot, 60000); // Update every minute
+
+  function initializeTimetable() {
+    // Add loading animation
+    document.body.classList.add('loading');
+    
+    // Remove loading after animation
+    setTimeout(() => {
+      document.body.classList.remove('loading');
+    }, 800);
+  }
+
+  function setupSwipeNavigation() {
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let touchStartY = 0;
+    let touchEndY = 0;
+    let isScrolling = false;
+    
+    const container = document.body;
+    const threshold = 80;
+    const restraint = 100;
+    
+    // Create swipe indicators
+    const leftIndicator = createSwipeIndicator('← Previous Day', 'left');
+    const rightIndicator = createSwipeIndicator('Next Day →', 'right');
+    
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    function handleTouchStart(e) {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+      isScrolling = false;
+    }
+
+    function handleTouchMove(e) {
+      if (!touchStartX || !touchStartY) return;
+      
+      const touchCurrentX = e.changedTouches[0].screenX;
+      const touchCurrentY = e.changedTouches[0].screenY;
+      
+      const diffX = touchStartX - touchCurrentX;
+      const diffY = touchStartY - touchCurrentY;
+      
+      // Determine if user is scrolling vertically
+      if (Math.abs(diffY) > Math.abs(diffX)) {
+        isScrolling = true;
+        return;
+      }
+      
+      // Show swipe indicators
+      if (Math.abs(diffX) > 30 && !isScrolling) {
+        if (diffX > 0) {
+          rightIndicator.classList.add('show');
+          leftIndicator.classList.remove('show');
+        } else {
+          leftIndicator.classList.add('show');
+          rightIndicator.classList.remove('show');
+        }
+      }
+    }
+
+    function handleTouchEnd(e) {
+      if (!touchStartX || !touchStartY || isScrolling) {
+        hideIndicators();
+        return;
+      }
+      
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+      
+      const diffX = touchStartX - touchEndX;
+      const diffY = touchStartY - touchEndY;
+      
+      // Check if swipe is horizontal and meets threshold
+      if (Math.abs(diffX) > threshold && Math.abs(diffY) < restraint) {
+        if (diffX > 0) {
+          // Swipe left - next day
+          navigateToDay('next');
+        } else {
+          // Swipe right - previous day
+          navigateToDay('previous');
+        }
+      }
+      
+      hideIndicators();
+      resetTouch();
+    }
+
+    function createSwipeIndicator(text, position) {
+      const indicator = document.createElement('div');
+      indicator.className = `swipe-indicator ${position}`;
+      indicator.textContent = text;
+      document.body.appendChild(indicator);
+      return indicator;
+    }
+
+    function hideIndicators() {
+      leftIndicator.classList.remove('show');
+      rightIndicator.classList.remove('show');
+    }
+
+    function resetTouch() {
+      touchStartX = 0;
+      touchEndX = 0;
+      touchStartY = 0;
+      touchEndY = 0;
+      isScrolling = false;
+    }
+
+    function navigateToDay(direction) {
+      const url = direction === 'next' 
+        ? `/student/timetable?day=<%= nextDay %>`
+        : `/student/timetable?day=<%= previousDay %>`;
+      
+      // Add page transition effect
+      document.body.style.opacity = '0.7';
+      document.body.style.transform = `translateX(${direction === 'next' ? '-20px' : '20px'})`;
+      
+      setTimeout(() => {
+        window.location.href = url;
+      }, 150);
+    }
+  }
+
+  function updateCurrentDate() {
+    const dateElement = document.getElementById('current-date');
+    if (dateElement) {
+      const today = new Date();
+      const options = { 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric'
+      };
+      dateElement.textContent = today.toLocaleDateString('en-US', options);
+    }
+  }
+
+  function calculateStats() {
+    const schedule = <%- JSON.stringify(schedule) %>;
+    const totalClasses = schedule.filter(slot => !slot.isEmpty).length;
+    const freePeriods = schedule.filter(slot => slot.isEmpty).length;
+    
+    // Update stats display
+    document.getElementById('total-classes').textContent = totalClasses;
+    document.getElementById('free-periods').textContent = freePeriods;
+    
+    // Find next class
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    let nextClass = '--';
+    for (let slot of schedule) {
+      if (!slot.isEmpty) {
+        const [startHour, startMin] = slot.time.start.split(':').map(Number);
+        const slotTime = startHour * 60 + startMin;
+        
+        if (slotTime > currentTime) {
+          nextClass = slot.time.start;
+          break;
+        }
+      }
+    }
+    
+    document.getElementById('next-class').textContent = nextClass;
+  }
+
+  function highlightCurrentTimeSlot() {
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    const schedule = <%- JSON.stringify(schedule) %>;
+    
+    // Remove existing current indicators
+    document.querySelectorAll('.current-time-indicator').forEach(el => {
+      el.classList.remove('current-time-indicator');
+    });
+    
+    // Find and highlight current time slot
+    schedule.forEach((slot, index) => {
+      const [startHour, startMin] = slot.time.start.split(':').map(Number);
+      const [endHour, endMin] = slot.time.end.split(':').map(Number);
+      
+      const startTime = startHour * 60 + startMin;
+      const endTime = endHour * 60 + endMin;
+      
+      if (currentTime >= startTime && currentTime <= endTime) {
+        const slotElement = document.querySelector(`[data-period="${slot.period}"]`);
+        if (slotElement) {
+          slotElement.classList.add('current-time-indicator');
+        }
+      }
+    });
+  }
+
+  // Add keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft') {
+      window.location.href = `/student/timetable?day=<%= previousDay %>`;
+    } else if (e.key === 'ArrowRight') {
+      window.location.href = `/student/timetable?day=<%= nextDay %>`;
+    }
+  });
+
+  // Add pull-to-refresh functionality
+  let startY = 0;
+  let pullDistance = 0;
+  const pullThreshold = 80;
+  
+  document.addEventListener('touchstart', function(e) {
+    startY = e.touches[0].pageY;
+  });
+  
+  document.addEventListener('touchmove', function(e) {
+    const currentY = e.touches[0].pageY;
+    pullDistance = currentY - startY;
+    
+    if (pullDistance > 0 && window.scrollY === 0) {
+      e.preventDefault();
+      
+      if (pullDistance > pullThreshold) {
+        document.body.style.transform = `translateY(${Math.min(pullDistance * 0.5, 50)}px)`;
+        document.body.style.opacity = '0.8';
+      }
+    }
+  });
+  
+  document.addEventListener('touchend', function() {
+    if (pullDistance > pullThreshold && window.scrollY === 0) {
+      // Refresh the page
+      window.location.reload();
+    }
+    
+    document.body.style.transform = '';
+    document.body.style.opacity = '';
+    pullDistance = 0;
+  });
 });
 </script>
-
-<%- include('../partials/footer') %> 

@@ -2,12 +2,8 @@ const ActivityLog = require('../../models/ActivityLog');
 const dateFormatter = require('../../helpers/dateFormatter');
 const Student = require('../../models/Student');
 const logger = require('../../helpers/logger');
+const timetableHelper = require('../../helpers/timetableHelper');
 
-const parsePeriods = (periodStr) => {
-  if (!periodStr) return [];
-  if (typeof periodStr === 'number') return [periodStr];
-  return periodStr.split(',').map(p => parseInt(p.trim()));
-};
 
 /**
  * Get timetable view
@@ -19,59 +15,46 @@ exports.getStudentTimetable = async (req, res) => {
     const student = await Student.findOne({ studentId: req.user.studentId });
     
     if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: 'Student not found'
-      });
+      req.flash('error_msg', 'Student not found');
+      return res.redirect('/auth/login');
     }
 
-    // Transform courses into timetable format
-    const timetable = {
-      Monday: [],
-      Tuesday: [],
-      Wednesday: [],
-      Thursday: [],
-      Friday: []
-    };
+    // Get current day and navigation days
+    const currentDay = timetableHelper.getCurrentWorkingDay(req.query.day);
+    const nextDay = timetableHelper.getNextDay(currentDay);
+    const previousDay = timetableHelper.getPreviousDay(currentDay);
 
-    student.courses.forEach(course => {
-      Object.keys(timetable).forEach(day => {
-        const periods = parsePeriods(course.schedule[day]);
-        periods.forEach(period => {
-          timetable[day][period - 1] = {
-            courseCode: course.courseCode,
-            courseName: course.courseName,
-            faculty: course.faculty,
-            venue: course.venue
-          };
-        });
-      });
-    });
+    // Get schedule for the day
+    const daySchedule = timetableHelper.transformCoursesToSchedule(student.courses, currentDay);
+    const fullSchedule = timetableHelper.createFullSchedule(daySchedule);
 
-    res.json({
-      success: true,
-      data: {
-        studentInfo: {
-          studentId: student.studentId,
-          name: student.name,
-          department: student.department,
-          program: student.program,
-          batch: student.batch
-        },
-        timetable
+    res.render('student/timetable', {
+      title: 'My Timetable',
+      currentDay,
+      nextDay,
+      previousDay,
+      schedule: fullSchedule,
+      student: {
+        name: student.name,
+        studentId: student.studentId,
+        department: student.department,
+        program: student.program,
+        batch: student.batch
       }
     });
 
   } catch (error) {
     logger.error('Error in getStudentTimetable:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message
-    });
+    req.flash('error_msg', 'Error loading timetable');
+    res.redirect('/auth/login');
   }
 };
 
+/**
+ * Get student courses
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 exports.getStudentCourses = async (req, res) => {
   try {
     const student = await Student.findOne({ studentId: req.user.studentId });
@@ -89,7 +72,7 @@ exports.getStudentCourses = async (req, res) => {
       faculty: course.faculty,
       venue: course.venue,
       schedule: Object.entries(course.schedule).reduce((acc, [day, periods]) => {
-        acc[day] = parsePeriods(periods);
+        acc[day] = periods;
         return acc;
       }, {})
     }));

@@ -1,90 +1,247 @@
-<!-- Navigation -->
-<nav class="bg-white shadow-lg">
-    <div class="container mx-auto px-4">
+<!-- Enhanced Navigation Bar -->
+<nav class="bg-white shadow-lg border-b border-gray-100 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
-            <!-- Logo -->
-            <div class="flex items-center">
-                <a href="/" class="text-xl font-bold text-primary">
-                    TimetableManager
+            <!-- Logo Section -->
+            <div class="flex items-center flex-shrink-0">
+                <a href="/" class="flex items-center space-x-2 group">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                        <i class="fas fa-calendar-alt text-white text-sm"></i>
+                    </div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        TimetableManager
+                    </span>
                 </a>
             </div>
 
-            <!-- Navigation Links -->
-            <div class="hidden md:flex space-x-8">
+            <!-- Desktop Search Bar -->
+            <div class="hidden md:flex flex-1 max-w-md mx-8">
+                <div class="relative w-full">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400 text-sm"></i>
+                    </div>
+                    <input type="text" 
+                           id="desktop-search"
+                           class="block w-full pl-10 pr-4 py-2 border border-gray-200 rounded-full bg-gray-50 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all duration-200"
+                           placeholder="Search subjects, faculty, venues...">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <kbd class="hidden sm:inline-block px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
+                            ⌘K
+                        </kbd>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desktop Navigation Links -->
+            <div class="hidden md:flex items-center space-x-1">
                 <% if (user) { %>
                     <% if (user.role === 'admin') { %>
-                        <a href="/admin/dashboard" class="text-gray-600 hover:text-primary">Dashboard</a>
-                        <a href="/admin/students" class="text-gray-600 hover:text-primary">Students</a>
-                        <a href="/admin/faculty" class="text-gray-600 hover:text-primary">Faculty</a>
-                        <a href="/admin/subjects" class="text-gray-600 hover:text-primary">Subjects</a>
-                        <a href="/admin/venues" class="text-gray-600 hover:text-primary">Venues</a>
-                        <a href="/admin/activity-logs" class="text-gray-600 hover:text-primary">Activity Logs</a>
+                        <a href="/admin/dashboard" class="nav-link">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                        </a>
+                        <a href="/admin/students" class="nav-link">
+                            <i class="fas fa-users mr-2"></i>Students
+                        </a>
+                        <a href="/admin/faculty" class="nav-link">
+                            <i class="fas fa-chalkboard-teacher mr-2"></i>Faculty
+                        </a>
+                        <a href="/admin/subjects" class="nav-link">
+                            <i class="fas fa-book mr-2"></i>Subjects
+                        </a>
+                        <a href="/admin/venues" class="nav-link">
+                            <i class="fas fa-map-marker-alt mr-2"></i>Venues
+                        </a>
+                        <a href="/admin/activity-logs" class="nav-link">
+                            <i class="fas fa-history mr-2"></i>Logs
+                        </a>
                     <% } else { %>
-                        <a href="/student/timetable" class="text-gray-600 hover:text-primary">My Timetable</a>
-                        <a href="/student/subjects" class="text-gray-600 hover:text-primary">My Subjects</a>
+                        <a href="/student/timetable" class="nav-link">
+                            <i class="fas fa-calendar mr-2"></i>My Timetable
+                        </a>
+                        <a href="/student/subjects" class="nav-link">
+                            <i class="fas fa-book-open mr-2"></i>My Subjects
+                        </a>
                     <% } %>
                 <% } %>
             </div>
 
-            <!-- User Menu -->
-            <div class="flex items-center">
+            <!-- User Menu & Mobile Controls -->
+            <div class="flex items-center space-x-2">
+                <!-- Mobile Search Button -->
+                <button id="mobile-search-btn" class="md:hidden p-2 rounded-full text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-200">
+                    <i class="fas fa-search text-lg"></i>
+                </button>
+
+                <!-- Notifications (for logged-in users) -->
+                <% if (user) { %>
+                    <div class="relative">
+                        <button class="p-2 rounded-full text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-200 relative">
+                            <i class="fas fa-bell text-lg"></i>
+                            <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                        </button>
+                    </div>
+                <% } %>
+
+                <!-- User Dropdown -->
                 <% if (user) { %>
                     <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="flex items-center space-x-2 text-gray-600 hover:text-primary focus:outline-none">
-                            <span><%= user.name %></span>
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
+                        <button @click="open = !open" 
+                                class="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                                <span class="text-white text-sm font-medium">
+                                    <%= user.name.charAt(0).toUpperCase() %>
+                                </span>
+                            </div>
+                            <span class="hidden sm:block text-sm font-medium text-gray-700 max-w-24 truncate">
+                                <%= user.name %>
+                            </span>
+                            <i class="fas fa-chevron-down text-xs text-gray-500 transition-transform duration-200" 
+                               :class="{ 'rotate-180': open }"></i>
                         </button>
                         
-                        <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1">
-                            <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                            <a href="/change-password" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Change Password</a>
-                            <form action="/auth/logout" method="POST" class="block">
-                                <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    Logout
-                                </button>
-                            </form>
+                        <!-- Dropdown Menu -->
+                        <div x-show="open" 
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             @click.away="open = false" 
+                             class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+                            
+                            <!-- User Info -->
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-sm font-medium text-gray-900"><%= user.name %></p>
+                                <p class="text-xs text-gray-500"><%= user.email || user.role %></p>
+                            </div>
+
+                            <!-- Menu Items -->
+                            <div class="py-1">
+                                <a href="/profile" class="dropdown-item">
+                                    <i class="fas fa-user w-4"></i>
+                                    <span>Profile</span>
+                                </a>
+                                <a href="/change-password" class="dropdown-item">
+                                    <i class="fas fa-key w-4"></i>
+                                    <span>Change Password</span>
+                                </a>
+                                <a href="/settings" class="dropdown-item">
+                                    <i class="fas fa-cog w-4"></i>
+                                    <span>Settings</span>
+                                </a>
+                                <div class="border-t border-gray-100 my-1"></div>
+                                <form action="/auth/logout" method="POST" class="block">
+                                    <button type="submit" class="dropdown-item text-red-600 hover:bg-red-50 w-full text-left">
+                                        <i class="fas fa-sign-out-alt w-4"></i>
+                                        <span>Logout</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 <% } else { %>
-                    <a href="/auth/login" class="text-gray-600 hover:text-primary">Login</a>
+                    <a href="/auth/login" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
+                        Login
+                    </a>
                 <% } %>
-            </div>
 
-            <!-- Mobile Menu Button -->
-            <div class="md:hidden">
-                <button @click="mobileMenu = !mobileMenu" class="text-gray-600 hover:text-primary focus:outline-none">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" 
+                        class="md:hidden p-2 rounded-full text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <i class="fas fa-bars text-lg" id="menu-icon"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Mobile Menu -->
-    <div x-show="mobileMenu" class="md:hidden">
-        <div class="px-2 pt-2 pb-3 space-y-1">
+    <!-- Mobile Search Overlay -->
+    <div id="mobile-search-overlay" class="hidden md:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white p-4">
+            <div class="flex items-center space-x-3">
+                <div class="flex-1 relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" 
+                           id="mobile-search-input"
+                           class="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white"
+                           placeholder="Search subjects, faculty, venues...">
+                </div>
+                <button id="mobile-search-close" class="p-2 text-gray-600 hover:text-blue-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation Menu -->
+    <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-gray-100">
+        <div class="px-4 py-3 space-y-1">
             <% if (user) { %>
                 <% if (user.role === 'admin') { %>
-                    <a href="/admin/dashboard" class="block px-3 py-2 text-gray-600 hover:text-primary">Dashboard</a>
-                    <a href="/admin/students" class="block px-3 py-2 text-gray-600 hover:text-primary">Students</a>
-                    <a href="/admin/faculty" class="block px-3 py-2 text-gray-600 hover:text-primary">Faculty</a>
-                    <a href="/admin/subjects" class="block px-3 py-2 text-gray-600 hover:text-primary">Subjects</a>
-                    <a href="/admin/venues" class="block px-3 py-2 text-gray-600 hover:text-primary">Venues</a>
-                    <a href="/admin/activity-logs" class="block px-3 py-2 text-gray-600 hover:text-primary">Activity Logs</a>
+                    <a href="/admin/dashboard" class="mobile-nav-link">
+                        <i class="fas fa-tachometer-alt w-5"></i>
+                        <span>Dashboard</span>
+                        <i class="fas fa-chevron-right text-gray-400 ml-auto"></i>
+                    </a>
+                    <a href="/admin/students" class="mobile-nav-link">
+                        <i class="fas fa-users w-5"></i>
+                        <span>Students</span>
+                        <i class="fas fa-chevron-right text-gray-400 ml-auto"></i>
+                    </a>
+                    <a href="/admin/faculty" class="mobile-nav-link">
+                        <i class="fas fa-chalkboard-teacher w-5"></i>
+                        <span>Faculty</span>
+                        <i class="fas fa-chevron-right text-gray-400 ml-auto"></i>
+                    </a>
+                    <a href="/admin/subjects" class="mobile-nav-link">
+                        <i class="fas fa-book w-5"></i>
+                        <span>Subjects</span>
+                        <i class="fas fa-chevron-right text-gray-400 ml-auto"></i>
+                    </a>
+                    <a href="/admin/venues" class="mobile-nav-link">
+                        <i class="fas fa-map-marker-alt w-5"></i>
+                        <span>Venues</span>
+                        <i class="fas fa-chevron-right text-gray-400 ml-auto"></i>
+                    </a>
+                    <a href="/admin/activity-logs" class="mobile-nav-link">
+                        <i class="fas fa-history w-5"></i>
+                        <span>Activity Logs</span>
+                        <i class="fas fa-chevron-right text-gray-400 ml-auto"></i>
+                    </a>
                 <% } else { %>
-                    <a href="/student/timetable" class="block px-3 py-2 text-gray-600 hover:text-primary">My Timetable</a>
-                    <a href="/student/subjects" class="block px-3 py-2 text-gray-600 hover:text-primary">My Subjects</a>
+                    <a href="/student/timetable" class="mobile-nav-link">
+                        <i class="fas fa-calendar w-5"></i>
+                        <span>My Timetable</span>
+                        <i class="fas fa-chevron-right text-gray-400 ml-auto"></i>
+                    </a>
+                    <a href="/student/subjects" class="mobile-nav-link">
+                        <i class="fas fa-book-open w-5"></i>
+                        <span>My Subjects</span>
+                        <i class="fas fa-chevron-right text-gray-400 ml-auto"></i>
+                    </a>
                 <% } %>
-                <a href="/profile" class="block px-3 py-2 text-gray-600 hover:text-primary">Profile</a>
-                <a href="/change-password" class="block px-3 py-2 text-gray-600 hover:text-primary">Change Password</a>
-                <form action="/auth/logout" method="POST" class="block">
-                    <button type="submit" class="w-full text-left px-3 py-2 text-gray-600 hover:text-primary">
-                        Logout
-                    </button>
-                </form>
+                
+                <!-- Mobile User Actions -->
+                <div class="border-t border-gray-100 mt-3 pt-3">
+                    <a href="/profile" class="mobile-nav-link">
+                        <i class="fas fa-user w-5"></i>
+                        <span>Profile</span>
+                        <i class="fas fa-chevron-right text-gray-400 ml-auto"></i>
+                    </a>
+                    <a href="/settings" class="mobile-nav-link">
+                        <i class="fas fa-cog w-5"></i>
+                        <span>Settings</span>
+                        <i class="fas fa-chevron-right text-gray-400 ml-auto"></i>
+                    </a>
+                </div>
+            <% } else { %>
+                <a href="/auth/login" class="mobile-nav-link">
+                    <i class="fas fa-sign-in-alt w-5"></i>
+                    <span>Login</span>
+                    <i class="fas fa-chevron-right text-gray-400 ml-auto"></i>
+                </a>
             <% } %>
         </div>
     </div>
@@ -92,10 +249,155 @@
 
 <!-- Alpine.js for dropdown functionality -->
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+<style>
+    /* Custom Navigation Styles */
+    .nav-link {
+        @apply px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 flex items-center;
+    }
+
+    .nav-link.active {
+        @apply text-blue-600 bg-blue-50;
+    }
+
+    .dropdown-item {
+        @apply flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150;
+    }
+
+    .mobile-nav-link {
+        @apply flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200;
+    }
+
+    .mobile-nav-link:active {
+        @apply bg-blue-50 text-blue-600;
+    }
+
+    /* Search Animation */
+    #mobile-search-overlay {
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Mobile Menu Animation */
+    #mobile-menu {
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
 <script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('mobileMenu', () => ({
-            open: false
-        }))
-    })
-</script> 
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIcon = document.getElementById('menu-icon');
+    let isMenuOpen = false;
+
+    mobileMenuBtn.addEventListener('click', function() {
+        isMenuOpen = !isMenuOpen;
+        
+        if (isMenuOpen) {
+            mobileMenu.classList.remove('hidden');
+            menuIcon.classList.remove('fa-bars');
+            menuIcon.classList.add('fa-times');
+        } else {
+            mobileMenu.classList.add('hidden');
+            menuIcon.classList.remove('fa-times');
+            menuIcon.classList.add('fa-bars');
+        }
+    });
+
+    // Mobile search toggle
+    const mobileSearchBtn = document.getElementById('mobile-search-btn');
+    const mobileSearchOverlay = document.getElementById('mobile-search-overlay');
+    const mobileSearchClose = document.getElementById('mobile-search-close');
+    const mobileSearchInput = document.getElementById('mobile-search-input');
+
+    mobileSearchBtn.addEventListener('click', function() {
+        mobileSearchOverlay.classList.remove('hidden');
+        setTimeout(() => mobileSearchInput.focus(), 100);
+    });
+
+    mobileSearchClose.addEventListener('click', function() {
+        mobileSearchOverlay.classList.add('hidden');
+    });
+
+    // Close mobile search on overlay click
+    mobileSearchOverlay.addEventListener('click', function(e) {
+        if (e.target === mobileSearchOverlay) {
+            mobileSearchOverlay.classList.add('hidden');
+        }
+    });
+
+    // Search functionality
+    function setupSearch(inputId) {
+        const searchInput = document.getElementById(inputId);
+        if (!searchInput) return;
+
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const query = this.value.trim();
+                if (query.length > 2) {
+                    performSearch(query);
+                }
+            }, 300);
+        });
+    }
+
+    function performSearch(query) {
+        // Implement search functionality here
+        console.log('Searching for:', query);
+        // You can make an AJAX request to search endpoint
+        // fetch(`/api/search?q=${encodeURIComponent(query)}`)
+        //     .then(response => response.json())
+        //     .then(data => displaySearchResults(data));
+    }
+
+    // Setup search for both desktop and mobile
+    setupSearch('desktop-search');
+    setupSearch('mobile-search-input');
+
+    // Keyboard shortcut for search (Cmd/Ctrl + K)
+    document.addEventListener('keydown', function(e) {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            e.preventDefault();
+            const desktopSearch = document.getElementById('desktop-search');
+            if (window.innerWidth >= 768) {
+                desktopSearch.focus();
+            } else {
+                mobileSearchBtn.click();
+            }
+        }
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target) && isMenuOpen) {
+            mobileMenuBtn.click();
+        }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 768 && isMenuOpen) {
+            mobileMenuBtn.click();
+        }
+    });
+});
+</script>

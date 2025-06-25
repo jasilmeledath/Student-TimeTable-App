@@ -17,7 +17,9 @@ exports.login = async (req, res) => {
     logger.info('Login attempt', { rollNumber });
 
     // Find student by roll number
-    const student = await Student.findOne({ rollNo: rollNumber.toUpperCase() });
+    const student = await Student.findOne({ studentId: rollNumber.toUpperCase() });
+    console.log("++++++++++++++++++++++++++++++++++++++",student.courses);
+    
     if (!student) {
       logger.warn('Login failed: Invalid roll number', { rollNumber });
       req.flash('error_msg', 'Invalid roll number or password');
@@ -53,11 +55,11 @@ exports.login = async (req, res) => {
 
     // Set session
     req.session.user = {
-      _id: student._id,
-      rollNo: student.rollNo,
+      _id: student._id.toString(),  // Convert ObjectId to string
+      studentId: student.studentId,
       name: student.name,
       isFirstLogin: student.isFirstLogin,
-      isAdmin: student.isAdmin
+      isAdmin: student.isAdmin || false
     };
 
     logger.info('Login successful', {
@@ -103,6 +105,12 @@ exports.login = async (req, res) => {
  */
 exports.changePassword = async (req, res) => {
   try {
+    if (!req.session.user || !req.session.user._id) {
+      logger.warn('Password change failed: No session user');
+      req.flash('error_msg', 'Please log in to change your password');
+      return res.redirect('/auth/login');
+    }
+
     const userId = req.session.user._id;
     logger.info('Password change attempt', { userId });
 
@@ -132,9 +140,15 @@ exports.changePassword = async (req, res) => {
     }
 
     // Update password
-    student.password = newPassword;
+    student.password = newPassword;  // Set plain password, model will hash it
     student.isFirstLogin = false;
-    await student.save();
+    await student.save();  // Let the model's middleware handle hashing
+
+    // Update session while preserving other user data
+    req.session.user = {
+      ...req.session.user,  // Keep existing session data
+      isFirstLogin: false,  // Update only what changed
+    };
 
     // Log activity
     await ActivityLog.logActivity({

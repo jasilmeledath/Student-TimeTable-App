@@ -71,6 +71,14 @@ const studentSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  lastLoginAt: {
+    type: Date,
+    default: null
+  },
+  lastLoginLocation: {
+    type: String,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -93,7 +101,12 @@ studentSchema.pre('save', function(next) {
 // Hash password before saving
 studentSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
+  
   try {
+    // Check if the password is already hashed (bcrypt hashes start with '$2a$', '$2b$', or '$2y$')
+    if (this.password.match(/^\$2[aby]\$\d+\$/)) {
+      return next();
+    }
     this.password = await bcrypt.hash(this.password, 10);
     next();
   } catch (error) {
@@ -104,6 +117,13 @@ studentSchema.pre('save', async function(next) {
 // Helper method for validating student's password
 studentSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Helper method for updating login info
+studentSchema.methods.updateLoginInfo = async function(location) {
+  this.lastLoginAt = new Date();
+  this.lastLoginLocation = location;
+  return this.save();
 };
 
 module.exports = mongoose.model('Student', studentSchema); 
