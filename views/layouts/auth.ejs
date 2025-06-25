@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | Student Timetable Manager</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3498db',
+                        secondary: '#2ecc71',
+                        danger: '#e74c3c',
+                        warning: '#f1c40f',
+                        info: '#9b59b6'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .auth-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .flash-message {
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+
+        .flash-message.fade-out {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <!-- Flash Messages -->
+    <%- include('../partials/flash-messages') %>
+
+    <!-- Main Content -->
+    <div class="auth-card w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
+        <%- body %>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Handle flash messages
+        document.addEventListener('DOMContentLoaded', () => {
+            // Function to remove a flash message
+            const removeFlashMessage = (message) => {
+                message.classList.add('fade-out');
+                setTimeout(() => message.remove(), 300);
+            };
+
+            // Handle close button clicks
+            document.querySelectorAll('.close-flash').forEach(button => {
+                button.addEventListener('click', () => {
+                    const message = button.closest('.flash-message');
+                    removeFlashMessage(message);
+                });
+            });
+
+            // Auto-hide flash messages after 5 seconds
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(message => {
+                setTimeout(() => {
+                    if (message && message.isConnected) {
+                        removeFlashMessage(message);
+                    }
+                }, 5000);
+            });
+        });
+    </script>
+
+    <!-- Page-specific scripts -->
+    <%- typeof script !== 'undefined' ? script : '' %>
+</body>
+</html> 

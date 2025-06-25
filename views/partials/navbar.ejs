@@ -1,0 +1,101 @@
+<!-- Navigation -->
+<nav class="bg-white shadow-lg">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <!-- Logo -->
+            <div class="flex items-center">
+                <a href="/" class="text-xl font-bold text-primary">
+                    TimetableManager
+                </a>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="hidden md:flex space-x-8">
+                <% if (user) { %>
+                    <% if (user.role === 'admin') { %>
+                        <a href="/admin/dashboard" class="text-gray-600 hover:text-primary">Dashboard</a>
+                        <a href="/admin/students" class="text-gray-600 hover:text-primary">Students</a>
+                        <a href="/admin/faculty" class="text-gray-600 hover:text-primary">Faculty</a>
+                        <a href="/admin/subjects" class="text-gray-600 hover:text-primary">Subjects</a>
+                        <a href="/admin/venues" class="text-gray-600 hover:text-primary">Venues</a>
+                        <a href="/admin/activity-logs" class="text-gray-600 hover:text-primary">Activity Logs</a>
+                    <% } else { %>
+                        <a href="/student/timetable" class="text-gray-600 hover:text-primary">My Timetable</a>
+                        <a href="/student/subjects" class="text-gray-600 hover:text-primary">My Subjects</a>
+                    <% } %>
+                <% } %>
+            </div>
+
+            <!-- User Menu -->
+            <div class="flex items-center">
+                <% if (user) { %>
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center space-x-2 text-gray-600 hover:text-primary focus:outline-none">
+                            <span><%= user.name %></span>
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        
+                        <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1">
+                            <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                            <a href="/change-password" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Change Password</a>
+                            <form action="/auth/logout" method="POST" class="block">
+                                <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <a href="/auth/login" class="text-gray-600 hover:text-primary">Login</a>
+                <% } %>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden">
+                <button @click="mobileMenu = !mobileMenu" class="text-gray-600 hover:text-primary focus:outline-none">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div x-show="mobileMenu" class="md:hidden">
+        <div class="px-2 pt-2 pb-3 space-y-1">
+            <% if (user) { %>
+                <% if (user.role === 'admin') { %>
+                    <a href="/admin/dashboard" class="block px-3 py-2 text-gray-600 hover:text-primary">Dashboard</a>
+                    <a href="/admin/students" class="block px-3 py-2 text-gray-600 hover:text-primary">Students</a>
+                    <a href="/admin/faculty" class="block px-3 py-2 text-gray-600 hover:text-primary">Faculty</a>
+                    <a href="/admin/subjects" class="block px-3 py-2 text-gray-600 hover:text-primary">Subjects</a>
+                    <a href="/admin/venues" class="block px-3 py-2 text-gray-600 hover:text-primary">Venues</a>
+                    <a href="/admin/activity-logs" class="block px-3 py-2 text-gray-600 hover:text-primary">Activity Logs</a>
+                <% } else { %>
+                    <a href="/student/timetable" class="block px-3 py-2 text-gray-600 hover:text-primary">My Timetable</a>
+                    <a href="/student/subjects" class="block px-3 py-2 text-gray-600 hover:text-primary">My Subjects</a>
+                <% } %>
+                <a href="/profile" class="block px-3 py-2 text-gray-600 hover:text-primary">Profile</a>
+                <a href="/change-password" class="block px-3 py-2 text-gray-600 hover:text-primary">Change Password</a>
+                <form action="/auth/logout" method="POST" class="block">
+                    <button type="submit" class="w-full text-left px-3 py-2 text-gray-600 hover:text-primary">
+                        Logout
+                    </button>
+                </form>
+            <% } %>
+        </div>
+    </div>
+</nav>
+
+<!-- Alpine.js for dropdown functionality -->
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('mobileMenu', () => ({
+            open: false
+        }))
+    })
+</script> 

@@ -1,0 +1,105 @@
+<%- include('../layouts/main', { title: 'My Timetable' }) %>
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">My Timetable</h3>
+          <div class="student-info mt-2">
+            <p class="mb-1"><strong>Student ID:</strong> <span id="studentId"></span></p>
+            <p class="mb-1"><strong>Name:</strong> <span id="studentName"></span></p>
+            <p class="mb-1"><strong>Department:</strong> <span id="department"></span></p>
+            <p class="mb-0"><strong>Program:</strong> <span id="program"></span></p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Period</th>
+                  <th>Monday</th>
+                  <th>Tuesday</th>
+                  <th>Wednesday</th>
+                  <th>Thursday</th>
+                  <th>Friday</th>
+                </tr>
+              </thead>
+              <tbody id="timetableBody">
+                <!-- Timetable will be populated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const response = await fetch('/student/timetable');
+    const result = await response.json();
+
+    if (result.success) {
+      const { studentInfo, timetable } = result.data;
+
+      // Update student info
+      document.getElementById('studentId').textContent = studentInfo.studentId;
+      document.getElementById('studentName').textContent = studentInfo.name;
+      document.getElementById('department').textContent = studentInfo.department;
+      document.getElementById('program').textContent = studentInfo.program;
+
+      // Find max periods across all days
+      const maxPeriods = Math.max(
+        ...Object.values(timetable).map(day => day.length)
+      );
+
+      // Generate timetable rows
+      const tbody = document.getElementById('timetableBody');
+      tbody.innerHTML = '';
+
+      for (let period = 0; period < maxPeriods; period++) {
+        const row = document.createElement('tr');
+        
+        // Add period number
+        const periodCell = document.createElement('td');
+        periodCell.textContent = `Period ${period + 1}`;
+        row.appendChild(periodCell);
+
+        // Add cells for each day
+        ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
+          const cell = document.createElement('td');
+          const courseData = timetable[day][period];
+
+          if (courseData) {
+            cell.innerHTML = `
+              <strong>${courseData.courseCode}</strong><br>
+              ${courseData.courseName}<br>
+              <small>
+                <i class="fas fa-chalkboard-teacher"></i> ${courseData.faculty}<br>
+                <i class="fas fa-map-marker-alt"></i> ${courseData.venue}
+              </small>
+            `;
+          } else {
+            cell.textContent = '-';
+          }
+
+          row.appendChild(cell);
+        });
+
+        tbody.appendChild(row);
+      }
+    } else {
+      throw new Error(result.message);
+    }
+  } catch (error) {
+    console.error('Error loading timetable:', error);
+    alert('Failed to load timetable. Please try again later.');
+  }
+});
+</script>
+
+<%- include('../partials/footer') %> 
