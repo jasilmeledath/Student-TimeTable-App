@@ -7,6 +7,9 @@
 
 const geoip = require('geoip-lite');
 const ActivityLog = require('../models/ActivityLog');
+const jwt = require('jsonwebtoken');
+const Student = require('../models/Student');
+const Admin = require('../models/Admin');
 
 /**
  * Verifies user authentication status
@@ -133,4 +136,118 @@ exports.attachUserData = (req, res, next) => {
   res.locals.isAuthenticated = !!req.session.user;
   res.locals.isAdmin = req.session.user?.isAdmin || false;
   next();
+};
+
+/**
+ * Verify JWT token and attach user to request
+ */
+exports.isAuthenticated = async (req, res, next) => {
+    try {
+        // Check for student token
+        const studentToken = req.cookies.token;
+        // Check for admin token
+        const adminToken = req.cookies.adminToken;
+
+        if (!studentToken && !adminToken) {
+            return res.redirect('/auth/login');
+        }
+
+        try {
+            if (adminToken) {
+                // Verify admin token
+                const decoded = jwt.verify(adminToken, process.env.JWT_SECRET);
+                const admin = await Admin.findById(decoded.id)
+                    .select('-password');
+
+                if (!admin || admin.status !== 'active') {
+                    res.clearCookie('adminToken');
+                    return res.redirect('/admin/login');
+                }
+
+                req.admin = admin;
+                req.userType = 'admin';
+                return next();
+            }
+
+            if (studentToken) {
+                // Verify student token
+                const decoded = jwt.verify(studentToken, process.env.JWT_SECRET);
+                const student = await Student.findById(decoded.id)
+                    .select('-password');
+
+                if (!student || student.status !== 'active') {
+                    res.clearCookie('token');
+                    return res.redirect('/auth/login');
+                }
+
+                req.student = student;
+                req.userType = 'student';
+                return next();
+            }
+        } catch (err) {
+            // Clear cookies on token verification failure
+            res.clearCookie('token');
+            res.clearCookie('adminToken');
+            return res.redirect('/auth/login');
+        }
+    } catch (error) {
+        console.error('Auth middleware error:', error);
+        res.status(500).render('errors/500');
+    }
+};
+
+/**
+ * Check if user is an admin
+ */
+exports.isAdmin = (req, res, next) => {
+    if (req.userType !== 'admin') {
+        return res.status(403).render('errors/403', {
+            message: 'Access denied. Admin privileges required.'
+        });
+    }
+    next();
+};
+
+/**
+ * Check if user is a student
+ */
+exports.isStudent = (req, res, next) => {
+    if (req.userType !== 'student') {
+        return res.status(403).render('errors/403', {
+            message: 'Access denied. Student privileges required.'
+        });
+    }
+    next();
+};
+
+/**
+ * Check specific admin permissions
+ */
+exports.hasPermission = (permission) => {
+    return (req, res, next) => {
+        if (req.userType !== 'admin' || !req.admin.permissions.includes(permission)) {
+            return res.status(403).render('errors/403', {
+                message: 'Access denied. Insufficient permissions.'
+            });
+        }
+        next();
+    };
+};
+
+/**
+ * Redirect if authenticated
+ */
+exports.redirectIfAuthenticated = (req, res, next) => {
+    const studentToken = req.cookies.token;
+    const adminToken = req.cookies.adminToken;
+
+    if (adminToken) {
+        return res.redirect('/admin/dashboard');
+    }
+
+    if (studentToken) {
+        return res.redirect('/student/timetable');
+    }
+
+    next();
 }; 

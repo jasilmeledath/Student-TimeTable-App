@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - <%= typeof title !== 'undefined' ? title : 'Summer Term Management' %></title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <style>
+        /* Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Sidebar Active State */
+        .sidebar-item.active {
+            @apply bg-blue-500 text-white;
+        }
+        
+        .sidebar-item.active:hover {
+            @apply bg-blue-600;
+        }
+        
+        /* Dropdown Styles */
+        .dropdown-content {
+            display: none;
+            @apply absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5;
+        }
+        
+        .dropdown-content.show {
+            display: block;
+        }
+        
+        .dropdown-item {
+            @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2;
+        }
+
+        /* Card Hover Effects */
+        .dashboard-card {
+            @apply transform transition-all duration-300;
+        }
+        
+        .dashboard-card:hover {
+            @apply -translate-y-1 shadow-lg;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #3b82f6;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    
+    <%- defineContent('style') %>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <aside class="hidden md:flex md:flex-col w-64 bg-white border-r border-gray-200">
+            <!-- Logo -->
+            <div class="h-16 flex items-center justify-center bg-gray-50 border-b border-gray-200">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white"></i>
+                    </div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">
+                        Admin
+                    </span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 overflow-y-auto py-4">
+                <div class="px-4 space-y-1">
+                    <!-- Dashboard -->
+                    <a href="/admin/dashboard" class="sidebar-item flex items-center px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-tachometer-alt w-5 h-5"></i>
+                        <span class="ml-3">Dashboard</span>
+                    </a>
+
+                    <!-- Students -->
+                    <div class="space-y-1">
+                        <button class="sidebar-item w-full flex items-center px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200" onclick="toggleSubmenu('studentsSubmenu')">
+                            <i class="fas fa-users w-5 h-5"></i>
+                            <span class="ml-3">Students</span>
+                            <i class="fas fa-chevron-down ml-auto transform transition-transform duration-200"></i>
+                        </button>
+                        <div id="studentsSubmenu" class="hidden pl-11 space-y-1">
+                            <a href="/admin/students" class="block px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                                View All
+                            </a>
+                            <a href="/admin/students/add" class="block px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                                Add New
+                            </a>
+                            <a href="/admin/students/blocked" class="block px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                                Blocked Students
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Activity Logs -->
+                    <a href="/admin/activity-logs" class="sidebar-item flex items-center px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-history w-5 h-5"></i>
+                        <span class="ml-3">Activity Logs</span>
+                    </a>
+
+                    <!-- Tickets -->
+                    <div class="space-y-1">
+                        <button class="sidebar-item w-full flex items-center px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200" onclick="toggleSubmenu('ticketsSubmenu')">
+                            <i class="fas fa-ticket-alt w-5 h-5"></i>
+                            <span class="ml-3">Tickets</span>
+                            <span class="ml-auto bg-red-100 text-red-600 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                New
+                            </span>
+                        </button>
+                        <div id="ticketsSubmenu" class="hidden pl-11 space-y-1">
+                            <a href="/admin/tickets" class="block px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                                All Tickets
+                            </a>
+                            <a href="/admin/tickets/password-reset" class="block px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                                Password Reset
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Feedback -->
+                    <a href="/admin/feedback" class="sidebar-item flex items-center px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-comments w-5 h-5"></i>
+                        <span class="ml-3">Feedback</span>
+                    </a>
+
+                    <!-- Settings -->
+                    <a href="/admin/settings" class="sidebar-item flex items-center px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-cog w-5 h-5"></i>
+                        <span class="ml-3">Settings</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Top Navigation -->
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6">
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-gray-600 hover:text-gray-900 focus:outline-none" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <!-- Search -->
+                <div class="hidden md:flex-1 md:flex md:max-w-xs">
+                    <div class="relative w-full">
+                        <input type="text" placeholder="Search..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Navigation -->
+                <div class="flex items-center space-x-4">
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button class="text-gray-600 hover:text-gray-900 focus:outline-none" onclick="toggleDropdown('notificationsDropdown')">
+                            <div class="relative">
+                                <i class="fas fa-bell"></i>
+                                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">3</span>
+                            </div>
+                        </button>
+                        <div id="notificationsDropdown" class="dropdown-content">
+                            <div class="py-2">
+                                <div class="px-4 py-2 border-b border-gray-100">
+                                    <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+                                </div>
+                                <a href="#" class="block px-4 py-3 hover:bg-gray-50">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-user-plus text-blue-500"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm text-gray-900">New student registration</p>
+                                            <p class="text-xs text-gray-500">2 minutes ago</p>
+                                        </div>
+                                    </div>
+                                </a>
+                                <!-- Add more notifications here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile -->
+                    <div class="relative">
+                        <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 focus:outline-none" onclick="toggleDropdown('profileDropdown')">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <span class="hidden md:inline-block text-sm font-medium">Admin</span>
+                        </button>
+                        <div id="profileDropdown" class="dropdown-content">
+                            <div class="py-1">
+                                <a href="/admin/profile" class="dropdown-item">
+                                    <i class="fas fa-user"></i>
+                                    <span>Profile</span>
+                                </a>
+                                <a href="/admin/settings" class="dropdown-item">
+                                    <i class="fas fa-cog"></i>
+                                    <span>Settings</span>
+                                </a>
+                                <div class="border-t border-gray-100"></div>
+                                <a href="/admin/logout" class="dropdown-item text-red-600 hover:bg-red-50">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+                <%- body %>
+            </main>
+        </div>
+    </div>
+
+    <!-- Mobile Sidebar -->
+    <div id="mobileSidebar" class="fixed inset-0 z-40 hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-gray-600 opacity-75" onclick="toggleSidebar()"></div>
+        
+        <!-- Sidebar Content -->
+        <div class="relative flex flex-col w-72 max-w-sm bg-white h-full">
+            <!-- Mobile sidebar content (copy from desktop sidebar) -->
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Toggle dropdowns
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            const allDropdowns = document.querySelectorAll('.dropdown-content');
+            
+            allDropdowns.forEach(d => {
+                if (d.id !== id) d.classList.remove('show');
+            });
+            
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown-content') && !e.target.closest('button')) {
+                document.querySelectorAll('.dropdown-content').forEach(d => {
+                    d.classList.remove('show');
+                });
+            }
+        });
+
+        // Toggle submenu
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = submenu.previousElementSibling.querySelector('.fa-chevron-down');
+            
+            submenu.classList.toggle('hidden');
+            icon.style.transform = submenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
+        // Toggle mobile sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mobileSidebar');
+            sidebar.classList.toggle('hidden');
+        }
+
+        // Set active sidebar item based on current path
+        document.addEventListener('DOMContentLoaded', function() {
+            const path = window.location.pathname;
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            
+            sidebarItems.forEach(item => {
+                const href = item.getAttribute('href');
+                if (href && path.startsWith(href)) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+    
+    <%- defineContent('script') %>
+</body>
+</html> 

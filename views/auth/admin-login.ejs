@@ -1,0 +1,529 @@
+<%- contentFor('body') %>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col justify-center -mt-6 sm:-mt-12">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full opacity-10 blur-3xl"></div>
+        <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full opacity-10 blur-3xl"></div>
+    </div>
+
+    <div class="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+        <!-- Logo and Header -->
+        <div class="text-center mb-6 sm:mb-8">
+            <div class="mx-auto w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 shadow-lg transform hover:scale-105 transition-transform duration-300">
+                <i class="fas fa-shield-alt text-white text-2xl sm:text-3xl"></i>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-white">
+                Admin Portal
+            </h1>
+            <p class="text-gray-400 mt-2 text-sm">
+                Secure access to administration dashboard
+            </p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-white py-6 sm:py-8 px-4 sm:px-6 shadow-2xl rounded-2xl border border-gray-100 sm:mx-0 backdrop-blur-lg bg-opacity-95">
+            <!-- Error/Success Messages -->
+            <div id="message-container" class="hidden mb-6">
+                <div id="error-message" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <span id="error-text"></span>
+                    </div>
+                </div>
+                <div id="success-message" class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span id="success-text"></span>
+                    </div>
+                </div>
+            </div>
+
+            <form id="admin-login-form" action="/admin/login" method="POST" class="space-y-5" novalidate>
+                <!-- Username Field -->
+                <div class="form-group">
+                    <label for="username" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        <i class="fas fa-user mr-2 text-blue-500"></i>
+                        Username
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            name="username" 
+                            id="username" 
+                            required 
+                            autocomplete="username"
+                            class="input-field"
+                            placeholder="Enter your username"
+                            data-validate="username"
+                        >
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <i class="fas fa-user text-gray-400 validation-icon"></i>
+                        </div>
+                    </div>
+                    <div class="error-message hidden mt-1 text-xs text-red-600">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        <span class="error-text"></span>
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        <i class="fas fa-lock mr-2 text-blue-500"></i>
+                        Password
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="password" 
+                            required 
+                            autocomplete="current-password"
+                            class="input-field pr-12"
+                            placeholder="Enter your password"
+                            data-validate="password"
+                        >
+                        <div class="absolute inset-y-0 right-0 flex items-center">
+                            <button 
+                                type="button" 
+                                id="toggle-password"
+                                class="px-3 py-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition-colors duration-200"
+                                aria-label="Toggle password visibility"
+                                tabindex="-1"
+                            >
+                                <i class="fas fa-eye" id="password-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="error-message hidden mt-1 text-xs text-red-600">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        <span class="error-text"></span>
+                    </div>
+                </div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="relative">
+                            <input 
+                                type="checkbox" 
+                                name="remember" 
+                                id="remember" 
+                                class="sr-only"
+                            >
+                            <label for="remember" class="flex items-center cursor-pointer">
+                                <div class="checkbox-custom mr-3"></div>
+                                <span class="text-sm text-gray-700 select-none">Remember me</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="text-sm">
+                        <a href="/admin/forgot-password" class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200 flex items-center">
+                            <i class="fas fa-question-circle mr-1"></i>
+                            Forgot password?
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="mt-6">
+                    <button 
+                        type="submit" 
+                        id="submit-btn"
+                        class="w-full flex justify-center items-center py-2.5 sm:py-3 px-4 border border-transparent rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                        <span id="submit-text">Sign In to Dashboard</span>
+                        <i id="submit-spinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                    </button>
+                </div>
+
+                <!-- Security Notice -->
+                <div class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-shield-alt text-blue-500 mt-0.5"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-semibold text-blue-800">Security Notice</h3>
+                            <p class="text-xs text-blue-600 mt-1">
+                                This is a secure area. Unauthorized access attempts will be logged and reported.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Additional Links -->
+        <div class="mt-6 sm:mt-8 text-center">
+            <div class="text-sm text-gray-400">
+                <span>Need technical support? </span>
+                <a href="/admin/support" class="font-medium text-blue-400 hover:text-blue-300 transition-colors duration-200">
+                    Contact IT Department
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- contentFor('style') %>
+<style>
+    /* Custom Form Styles */
+    .input-field {
+        @apply appearance-none block w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 focus:bg-white transition-all duration-200;
+    }
+
+    .input-field:focus {
+        @apply transform scale-[1.02];
+    }
+
+    .input-field.error {
+        @apply border-red-300 bg-red-50 focus:ring-red-500;
+    }
+
+    .input-field.success {
+        @apply border-green-300 bg-green-50 focus:ring-green-500;
+    }
+
+    /* Custom Checkbox */
+    .checkbox-custom {
+        @apply w-5 h-5 border-2 border-gray-300 rounded bg-white relative transition-all duration-200 cursor-pointer;
+    }
+
+    .checkbox-custom::before {
+        content: '';
+        @apply absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded opacity-0 transition-opacity duration-200;
+    }
+
+    .checkbox-custom::after {
+        content: '\f00c';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        @apply absolute inset-0 flex items-center justify-center text-white text-xs opacity-0 transition-opacity duration-200;
+    }
+
+    input[type="checkbox"]:checked + label .checkbox-custom::before,
+    input[type="checkbox"]:checked + label .checkbox-custom::after {
+        @apply opacity-100;
+    }
+
+    input[type="checkbox"]:checked + label .checkbox-custom {
+        @apply border-blue-500;
+    }
+
+    /* Validation Icons */
+    .validation-icon.success {
+        @apply text-green-500;
+    }
+
+    .validation-icon.error {
+        @apply text-red-500;
+    }
+
+    /* Loading Animation */
+    .form-loading {
+        @apply pointer-events-none opacity-75;
+    }
+
+    /* Shake Animation for Errors */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    .shake {
+        animation: shake 0.5s ease-in-out;
+    }
+
+    /* Mobile Optimizations */
+    @media (max-width: 640px) {
+        .input-field {
+            font-size: 16px;
+        }
+        
+        .input-field::placeholder {
+            font-size: 14px;
+        }
+        
+        .checkbox-custom {
+            @apply w-4 h-4;
+        }
+    }
+</style>
+
+<%- contentFor('script') %>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('admin-login-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const submitText = document.getElementById('submit-text');
+    const submitSpinner = document.getElementById('submit-spinner');
+    const togglePassword = document.getElementById('toggle-password');
+    const passwordInput = document.getElementById('password');
+    const passwordIcon = document.getElementById('password-icon');
+
+    // Form validation rules
+    const validationRules = {
+        username: {
+            required: true,
+            pattern: /^[A-Za-z0-9_]{4,20}$/,
+            message: 'Username must be 4-20 characters and can contain letters, numbers, and underscores'
+        },
+        password: {
+            required: true,
+            minLength: 8,
+            message: 'Password must be at least 8 characters long'
+        }
+    };
+
+    // Initialize form
+    initializeForm();
+
+    function initializeForm() {
+        // Verify elements exist
+        if (!togglePassword || !passwordInput || !passwordIcon) {
+            console.error('Password toggle elements not found');
+            return;
+        }
+
+        // Setup real-time validation
+        setupValidation();
+        
+        // Setup password toggle
+        setupPasswordToggle();
+        
+        // Setup form submission
+        setupFormSubmission();
+        
+        // Setup keyboard shortcuts
+        setupKeyboardShortcuts();
+        
+        // Auto-focus first input
+        document.getElementById('username').focus();
+    }
+
+    function setupValidation() {
+        Object.keys(validationRules).forEach(fieldName => {
+            const field = document.getElementById(fieldName);
+            const formGroup = field.closest('.form-group');
+            
+            field.addEventListener('input', () => validateField(field, formGroup));
+            field.addEventListener('blur', () => validateField(field, formGroup));
+            field.addEventListener('focus', () => clearFieldValidation(field, formGroup));
+        });
+    }
+
+    function validateField(field, formGroup) {
+        const fieldName = field.name;
+        const value = field.value.trim();
+        const rules = validationRules[fieldName];
+        const errorElement = formGroup.querySelector('.error-message');
+        const errorText = errorElement.querySelector('.error-text');
+        const validationIcon = formGroup.querySelector('.validation-icon');
+
+        let isValid = true;
+        let errorMessage = '';
+
+        if (rules.required && !value) {
+            isValid = false;
+            errorMessage = `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
+        }
+        else if (rules.pattern && value && !rules.pattern.test(value)) {
+            isValid = false;
+            errorMessage = rules.message;
+        }
+        else if (rules.minLength && value && value.length < rules.minLength) {
+            isValid = false;
+            errorMessage = rules.message;
+        }
+
+        if (isValid && value) {
+            field.classList.remove('error');
+            field.classList.add('success');
+            errorElement.classList.add('hidden');
+            if (validationIcon) {
+                validationIcon.classList.remove('error');
+                validationIcon.classList.add('success');
+                validationIcon.className = validationIcon.className.replace(/fa-\w+/, 'fa-check');
+            }
+        } else if (!isValid) {
+            field.classList.remove('success');
+            field.classList.add('error');
+            errorText.textContent = errorMessage;
+            errorElement.classList.remove('hidden');
+            if (validationIcon) {
+                validationIcon.classList.remove('success');
+                validationIcon.classList.add('error');
+                validationIcon.className = validationIcon.className.replace(/fa-\w+/, 'fa-exclamation-triangle');
+            }
+            
+            field.classList.add('shake');
+            setTimeout(() => field.classList.remove('shake'), 500);
+        }
+
+        return isValid;
+    }
+
+    function clearFieldValidation(field, formGroup) {
+        field.classList.remove('error', 'success');
+        const errorElement = formGroup.querySelector('.error-message');
+        errorElement.classList.add('hidden');
+        
+        const validationIcon = formGroup.querySelector('.validation-icon');
+        if (validationIcon) {
+            validationIcon.classList.remove('error', 'success');
+            validationIcon.className = validationIcon.className.replace(/fa-\w+/, field.id === 'username' ? 'fa-user' : 'fa-lock');
+        }
+    }
+
+    function setupPasswordToggle() {
+        togglePassword.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+        });
+
+        togglePassword.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            if (type === 'text') {
+                passwordIcon.classList.remove('fa-eye');
+                passwordIcon.classList.add('fa-eye-slash');
+                togglePassword.setAttribute('aria-label', 'Hide password');
+            } else {
+                passwordIcon.classList.remove('fa-eye-slash');
+                passwordIcon.classList.add('fa-eye');
+                togglePassword.setAttribute('aria-label', 'Show password');
+            }
+        });
+    }
+
+    function setupFormSubmission() {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let isFormValid = true;
+            Object.keys(validationRules).forEach(fieldName => {
+                const field = document.getElementById(fieldName);
+                const formGroup = field.closest('.form-group');
+                if (!validateField(field, formGroup)) {
+                    isFormValid = false;
+                }
+            });
+
+            if (!isFormValid) {
+                showMessage('Please fix the errors above', 'error');
+                return;
+            }
+
+            setLoadingState(true);
+
+            // Add brute force protection
+            const attempts = parseInt(localStorage.getItem('loginAttempts') || '0');
+            const lastAttempt = parseInt(localStorage.getItem('lastLoginAttempt') || '0');
+            const now = Date.now();
+
+            if (attempts >= 5 && now - lastAttempt < 300000) { // 5 minutes lockout
+                showMessage('Too many login attempts. Please try again in 5 minutes.', 'error');
+                setLoadingState(false);
+                return;
+            }
+
+            // Simulate form submission (replace with actual submission)
+            setTimeout(() => {
+                const username = document.getElementById('username').value;
+                
+                if (username.toLowerCase() === 'demo') {
+                    localStorage.setItem('loginAttempts', attempts + 1);
+                    localStorage.setItem('lastLoginAttempt', now);
+                    showMessage('Invalid credentials. Please try again.', 'error');
+                    setLoadingState(false);
+                } else {
+                    localStorage.removeItem('loginAttempts');
+                    localStorage.removeItem('lastLoginAttempt');
+                    form.submit();
+                }
+            }, 1500);
+        });
+    }
+
+    function setLoadingState(loading) {
+        if (loading) {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('form-loading');
+            submitText.textContent = 'Signing In...';
+            submitSpinner.classList.remove('hidden');
+            form.classList.add('form-loading');
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('form-loading');
+            submitText.textContent = 'Sign In to Dashboard';
+            submitSpinner.classList.add('hidden');
+            form.classList.remove('form-loading');
+        }
+    }
+
+    function showMessage(message, type) {
+        const messageContainer = document.getElementById('message-container');
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+        const errorText = document.getElementById('error-text');
+        const successText = document.getElementById('success-text');
+
+        errorMessage.classList.add('hidden');
+        successMessage.classList.add('hidden');
+
+        if (type === 'error') {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+        } else {
+            successText.textContent = message;
+            successMessage.classList.remove('hidden');
+        }
+
+        messageContainer.classList.remove('hidden');
+
+        setTimeout(() => {
+            messageContainer.classList.add('hidden');
+        }, 5000);
+
+        messageContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function setupKeyboardShortcuts() {
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                const activeElement = document.activeElement;
+                if (activeElement.tagName === 'INPUT') {
+                    form.dispatchEvent(new Event('submit'));
+                }
+            }
+            
+            if (e.key === 'Escape') {
+                clearForm();
+            }
+        });
+    }
+
+    function clearForm() {
+        form.reset();
+        document.querySelectorAll('.form-group').forEach(group => {
+            const field = group.querySelector('input');
+            clearFieldValidation(field, group);
+        });
+        document.getElementById('username').focus();
+    }
+
+    // Handle browser back button
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            setLoadingState(false);
+        }
+    });
+});
+</script> 

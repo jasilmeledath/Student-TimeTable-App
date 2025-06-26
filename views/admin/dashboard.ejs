@@ -1,0 +1,226 @@
+<%- contentFor('body') %>
+
+<!-- Page Header -->
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
+    <p class="mt-1 text-sm text-gray-600">Welcome back, Admin! Here's what's happening today.</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <!-- Total Students -->
+    <div class="dashboard-card bg-white rounded-xl shadow p-4 border border-gray-100">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-blue-500 bg-opacity-10 p-3 rounded-lg">
+                <i class="fas fa-users text-blue-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">Total Students</p>
+                <h3 class="text-xl font-bold text-gray-900"><%= totalStudents %></h3>
+                <p class="text-xs text-green-600 mt-1">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>12% increase</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Sessions -->
+    <div class="dashboard-card bg-white rounded-xl shadow p-4 border border-gray-100">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-green-500 bg-opacity-10 p-3 rounded-lg">
+                <i class="fas fa-clock text-green-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">Active Sessions</p>
+                <h3 class="text-xl font-bold text-gray-900"><%= activeSessions %></h3>
+                <p class="text-xs text-gray-500 mt-1">Last 24 hours</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Tickets -->
+    <div class="dashboard-card bg-white rounded-xl shadow p-4 border border-gray-100">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-yellow-500 bg-opacity-10 p-3 rounded-lg">
+                <i class="fas fa-ticket-alt text-yellow-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">Pending Tickets</p>
+                <h3 class="text-xl font-bold text-gray-900"><%= pendingTickets %></h3>
+                <p class="text-xs text-red-600 mt-1">Requires attention</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="dashboard-card bg-white rounded-xl shadow p-4 border border-gray-100">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-purple-500 bg-opacity-10 p-3 rounded-lg">
+                <i class="fas fa-server text-purple-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">System Status</p>
+                <h3 class="text-xl font-bold text-green-500">Operational</h3>
+                <p class="text-xs text-gray-500 mt-1">All systems normal</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Recent Activity -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Activity Chart -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Activity Overview</h2>
+                <div class="flex items-center space-x-2">
+                    <button class="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 focus:outline-none">
+                        Day
+                    </button>
+                    <button class="px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-lg focus:outline-none">
+                        Week
+                    </button>
+                    <button class="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 focus:outline-none">
+                        Month
+                    </button>
+                </div>
+            </div>
+            <div class="h-64 flex items-center justify-center text-gray-500">
+                [Activity Chart Placeholder]
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Recent Activities</h2>
+                <a href="/admin/activity-logs" class="text-sm text-blue-600 hover:text-blue-700">View all</a>
+            </div>
+            <div class="space-y-4">
+                <% recentActivities.forEach(activity => { %>
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i class="fas <%= activity.icon %> text-blue-500"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900">
+                            <%= activity.description %>
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            <%= activity.timestamp %>
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= activity.type === 'login' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' %>">
+                            <%= activity.type %>
+                        </span>
+                    </div>
+                </div>
+                <% }); %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="space-y-6">
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <a href="/admin/students/add" class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-blue-500 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
+                        <i class="fas fa-user-plus text-blue-500"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">Add Student</span>
+                </a>
+                <a href="/admin/tickets" class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-blue-500 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
+                        <i class="fas fa-ticket-alt text-purple-500"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">View Tickets</span>
+                </a>
+                <a href="/admin/feedback" class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-blue-500 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-2">
+                        <i class="fas fa-comments text-green-500"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">Feedback</span>
+                </a>
+                <a href="/admin/settings" class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-blue-500 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-2">
+                        <i class="fas fa-cog text-yellow-500"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">Settings</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Tickets -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Tickets</h2>
+            <div class="space-y-4">
+                <% recentTickets.forEach(ticket => { %>
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                        <span class="inline-block w-2 h-2 rounded-full <%= ticket.status === 'urgent' ? 'bg-red-400' : 'bg-yellow-400' %>"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900">
+                            <%= ticket.title %>
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            <%= ticket.timestamp %> • <%= ticket.student %>
+                        </p>
+                    </div>
+                </div>
+                <% }); %>
+            </div>
+            <a href="/admin/tickets" class="block text-center text-sm text-blue-600 hover:text-blue-700 mt-4">
+                View all tickets
+            </a>
+        </div>
+
+        <!-- System Health -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">System Health</h2>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-600">CPU Usage</span>
+                        <span class="text-sm font-medium text-gray-900">65%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: 65%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-600">Memory Usage</span>
+                        <span class="text-sm font-medium text-gray-900">82%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-yellow-500 h-2 rounded-full" style="width: 82%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-600">Storage</span>
+                        <span class="text-sm font-medium text-gray-900">43%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-500 h-2 rounded-full" style="width: 43%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- contentFor('script') %>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize any dashboard-specific JavaScript here
+});
+</script> 

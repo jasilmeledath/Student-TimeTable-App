@@ -1,45 +1,200 @@
+const Admin = require('../../models/Admin');
 const Student = require('../../models/Student');
 const ActivityLog = require('../../models/ActivityLog');
 const geoLocator = require('../../helpers/geoLocator');
 const dateFormatter = require('../../helpers/dateFormatter');
+const jwt = require('jsonwebtoken');
+const { validationResult } = require('express-validator');
 
 /**
- * Render admin dashboard
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
+ * Admin Authentication Controllers
+ */
+exports.getLoginPage = (req, res) => {
+    res.render('auth/admin-login', {
+        layout: 'auth',
+        title: 'Admin Login'
+    });
+};
+
+exports.login = async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { username, password } = req.body;
+
+        // Find admin by username
+        const admin = await Admin.findOne({ username });
+        
+        if (!admin) {
+            return res.status(401).json({
+                error: 'Invalid credentials'
+            });
+        }
+
+        // Check if account is locked
+        if (admin.isLocked) {
+            return res.status(423).json({
+                error: 'Account is temporarily locked. Please try again later.'
+            });
+        }
+
+        // Check password
+        const isMatch = await admin.comparePassword(password);
+        
+        if (!isMatch) {
+            await admin.incrementLoginAttempts();
+            
+            return res.status(401).json({
+                error: 'Invalid credentials'
+            });
+        }
+
+        // Reset login attempts on successful login
+        await admin.resetLoginAttempts();
+
+        // Update last login
+        admin.lastLogin = new Date();
+        await admin.save();
+
+        // Create JWT token
+        const token = jwt.sign(
+            { 
+                id: admin._id,
+                role: admin.role,
+                permissions: admin.permissions
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        // Log activity
+        await ActivityLog.logActivity({
+            userId: admin._id,
+            userType: 'Admin',
+            action: 'login',
+            entityType: 'System',
+            details: {
+                browser: req.headers['user-agent']
+            }
+        });
+
+        // Set cookie
+        res.cookie('adminToken', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 24 * 60 * 60 * 1000 // 1 day
+        });
+
+        res.json({ success: true });
+
+    } catch (error) {
+        console.error('Admin login error:', error);
+        res.status(500).json({
+            error: 'Internal server error'
+        });
+    }
+};
+
+exports.logout = async (req, res) => {
+    try {
+        // Log activity
+        await ActivityLog.logActivity({
+            userId: req.admin.id,
+            userType: 'Admin',
+            action: 'logout',
+            entityType: 'System'
+        });
+
+        res.clearCookie('adminToken');
+        res.redirect('/admin/login');
+    } catch (error) {
+        console.error('Admin logout error:', error);
+        res.status(500).json({
+            error: 'Internal server error'
+        });
+    }
+};
+
+/**
+ * Dashboard Controllers
  */
 exports.getDashboard = async (req, res) => {
-  try {
-    // Get all students with their last login info
-    const students = await Student.find()
-      .select('rollNo name email lastLoginTime lastLocation')
-      .sort({ lastLoginTime: -1 });
+    try {
+        // Fetch dashboard data
+        const [
+            totalStudents,
+            activeSessions,
+            pendingTickets,
+            recentActivities,
+            recentTickets
+        ] = await Promise.all([
+            Student.countDocuments(),
+            ActivityLog.countDocuments({
+                action: 'login',
+                createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+            }),
+            // Add your Ticket model query here
+            ActivityLog.find()
+                .sort({ createdAt: -1 })
+                .limit(5)
+                .populate('userId'),
+            // Add your Ticket model query here for recent tickets
+        ]);
 
-    // Get activity counts for each student
-    const activitySummaries = await Promise.all(
-      students.map(async (student) => {
-        const summary = await ActivityLog.getUserActivitySummary(student._id);
-        return {
-          ...student.toObject(),
-          lastLoginFormatted: student.lastLoginTime ? 
-            dateFormatter.getRelativeTime(student.lastLoginTime) : 'Never',
-          location: student.lastLocation ? 
-            geoLocator.formatLocation(student.lastLocation) : 'Unknown',
-          activitySummary: summary
-        };
-      })
-    );
-
-    res.render('admin/dashboard', {
-      title: 'Admin Dashboard',
-      students: activitySummaries
-    });
-  } catch (error) {
-    console.error('Admin dashboard error:', error);
-    req.flash('error_msg', 'Error loading dashboard data');
-    res.redirect('/');
-  }
+        res.render('admin/dashboard', {
+            layout: 'admin',
+            title: 'Admin Dashboard',
+            totalStudents,
+            activeSessions,
+            pendingTickets: pendingTickets || 0,
+            recentActivities: recentActivities.map(activity => ({
+                icon: getActivityIcon(activity.action),
+                description: formatActivityDescription(activity),
+                timestamp: activity.createdAt,
+                type: activity.action
+            })),
+            recentTickets: recentTickets || []
+        });
+    } catch (error) {
+        console.error('Dashboard error:', error);
+        res.status(500).render('errors/500');
+    }
 };
+
+/**
+ * Helper Functions
+ */
+function getActivityIcon(action) {
+    const icons = {
+        login: 'fa-sign-in-alt',
+        logout: 'fa-sign-out-alt',
+        create: 'fa-plus',
+        update: 'fa-edit',
+        delete: 'fa-trash',
+        view: 'fa-eye'
+    };
+    return icons[action] || 'fa-circle';
+}
+
+function formatActivityDescription(activity) {
+    const actions = {
+        login: 'logged in',
+        logout: 'logged out',
+        create: 'created',
+        update: 'updated',
+        delete: 'deleted',
+        view: 'viewed'
+    };
+
+    const action = actions[activity.action];
+    const userType = activity.userType.toLowerCase();
+    const entityType = activity.entityType.toLowerCase();
+
+    return `${activity.userId.name} ${action} ${entityType}`;
+}
 
 /**
  * Get activity logs with filters
