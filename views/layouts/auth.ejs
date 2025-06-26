@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><%= title %> | Student Timetable Manager</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -26,6 +29,12 @@
     </script>
 
     <style>
+        /* Prevent content shift on load */
+        html {
+            overflow-y: scroll;
+        }
+        
+        /* Smooth animations */
         .auth-card {
             animation: fadeIn 0.5s ease-out;
         }
@@ -50,14 +59,28 @@
             opacity: 0;
             transform: translateX(100%);
         }
+
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .auth-card {
+                box-shadow: none;
+                background: transparent;
+            }
+            
+            body {
+                background: white;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body class="min-h-screen flex flex-col justify-center py-6 sm:py-12 bg-gray-50 px-4 sm:px-6">
     <!-- Flash Messages -->
-    <%- include('../partials/flash-messages') %>
+    <div class="fixed top-0 right-0 left-0 z-50 px-4 py-6 pointer-events-none sm:p-6">
+        <%- include('../partials/flash-messages') %>
+    </div>
 
     <!-- Main Content -->
-    <div class="auth-card w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
+    <div class="auth-card relative w-full max-w-md mx-auto">
         <%- body %>
     </div>
 

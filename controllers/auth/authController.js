@@ -283,16 +283,29 @@ exports.logout = async (req, res) => {
         action: 'logout',
         entityType: 'System'
       });
+      
+      logger.info('Logging out user', {
+        userId: req.session.user._id,
+        userType: req.session.user.isAdmin ? 'Admin' : 'Student'
+      });
     }
 
     req.session.destroy((err) => {
       if (err) {
-        console.error('Session destruction error:', err);
+        logger.error('Session destruction error:', {
+          error: err.message,
+          stack: err.stack
+        });
+        req.flash('error_msg', 'An error occurred during logout');
       }
       res.redirect('/auth/login');
     });
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error('Logout error:', {
+      error: error.message,
+      stack: error.stack
+    });
+    req.flash('error_msg', 'An error occurred during logout');
     res.redirect('/auth/login');
   }
 }; 

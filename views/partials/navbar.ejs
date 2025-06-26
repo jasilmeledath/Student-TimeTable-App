@@ -131,12 +131,12 @@
                                     <span>Settings</span>
                                 </a>
                                 <div class="border-t border-gray-100 my-1"></div>
-                                <form action="/auth/logout" method="POST" class="block">
-                                    <button type="submit" class="dropdown-item text-red-600 hover:bg-red-50 w-full text-left">
-                                        <i class="fas fa-sign-out-alt w-4"></i>
-                                        <span>Logout</span>
-                                    </button>
-                                </form>
+                                <button id="logoutButton" 
+                                        class="dropdown-item text-red-600 hover:bg-red-50 w-full text-left"
+                                        onclick="handleLogout()">
+                                    <i class="fas fa-sign-out-alt w-4"></i>
+                                    <span>Logout</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -306,6 +306,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileMenu = document.getElementById('mobile-menu');
     const menuIcon = document.getElementById('menu-icon');
     let isMenuOpen = false;
+
+    // Logout handler
+    window.handleLogout = async function() {
+        console.log('Logout initiated');
+        try {
+            const response = await fetch('/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+            
+            console.log('Logout response:', response);
+            
+            if (response.ok) {
+                console.log('Logout successful, redirecting...');
+                window.location.href = '/auth/login';
+            } else {
+                console.error('Logout failed:', response.status);
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
 
     mobileMenuBtn.addEventListener('click', function() {
         isMenuOpen = !isMenuOpen;

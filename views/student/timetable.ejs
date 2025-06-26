@@ -3,34 +3,34 @@
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
   <!-- Header Section -->
   <div class="bg-white shadow-sm border-b border-gray-100">
-    <div class="max-w-md mx-auto px-4 py-4">
+    <div class="w-full max-w-lg mx-auto px-4 py-4">
       <!-- Day Navigation -->
       <div class="flex items-center justify-between mb-4">
         <a href="/student/timetable?day=<%= previousDay %>" 
-           class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-200 active:scale-95">
-          <i class="fas fa-chevron-left text-sm"></i>
+           class="flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-200 active:scale-95">
+          <i class="fas fa-chevron-left text-xs sm:text-sm"></i>
         </a>
         
         <div class="text-center">
-          <h1 class="text-lg font-semibold text-gray-900"><%= currentDay %></h1>
-          <p class="text-xs text-gray-500 mt-1" id="current-date"></p>
+          <h1 class="text-base sm:text-lg font-semibold text-gray-900"><%= currentDay %></h1>
+          <p class="text-xs text-gray-500 mt-0.5 sm:mt-1" id="current-date"></p>
         </div>
         
         <a href="/student/timetable?day=<%= nextDay %>" 
-           class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-200 active:scale-95">
-          <i class="fas fa-chevron-right text-sm"></i>
+           class="flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-200 active:scale-95">
+          <i class="fas fa-chevron-right text-xs sm:text-sm"></i>
         </a>
       </div>
 
       <!-- Student Info Card -->
-      <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-4 text-white">
+      <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-white">
         <div class="flex items-center space-x-3">
-          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <i class="fas fa-user text-lg"></i>
+          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <i class="fas fa-user text-base sm:text-lg"></i>
           </div>
           <div class="flex-1 min-w-0">
-            <h2 class="font-semibold text-base truncate"><%= student.name %></h2>
-            <p class="text-blue-100 text-sm opacity-90">
+            <h2 class="font-semibold text-sm sm:text-base truncate"><%= student.name %></h2>
+            <p class="text-blue-100 text-xs sm:text-sm opacity-90">
               <%= student.program %> • <%= student.department %>
             </p>
             <p class="text-blue-100 text-xs opacity-75">Batch <%= student.batch %></p>
@@ -41,19 +41,19 @@
   </div>
 
   <!-- Schedule Content -->
-  <div class="max-w-md mx-auto px-4 py-6">
+  <div class="w-full max-w-lg mx-auto px-4 py-4 sm:py-6">
     <!-- Quick Stats -->
-    <div class="grid grid-cols-3 gap-3 mb-6">
-      <div class="bg-white rounded-xl p-3 text-center shadow-sm">
-        <div class="text-lg font-bold text-green-600" id="total-classes">0</div>
+    <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
+      <div class="bg-white rounded-lg sm:rounded-xl p-2 sm:p-3 text-center shadow-sm">
+        <div class="text-base sm:text-lg font-bold text-green-600" id="total-classes">0</div>
         <div class="text-xs text-gray-500">Classes</div>
       </div>
-      <div class="bg-white rounded-xl p-3 text-center shadow-sm">
-        <div class="text-lg font-bold text-blue-600" id="free-periods">0</div>
+      <div class="bg-white rounded-lg sm:rounded-xl p-2 sm:p-3 text-center shadow-sm">
+        <div class="text-base sm:text-lg font-bold text-blue-600" id="free-periods">0</div>
         <div class="text-xs text-gray-500">Free</div>
       </div>
-      <div class="bg-white rounded-xl p-3 text-center shadow-sm">
-        <div class="text-lg font-bold text-purple-600" id="next-class">--</div>
+      <div class="bg-white rounded-lg sm:rounded-xl p-2 sm:p-3 text-center shadow-sm">
+        <div class="text-base sm:text-lg font-bold text-purple-600" id="next-class">--</div>
         <div class="text-xs text-gray-500">Next</div>
       </div>
     </div>
@@ -63,48 +63,48 @@
       <% schedule.forEach(function(slot, index) { %>
         <div class="schedule-item <%= slot.isEmpty ? 'empty-slot' : 'active-slot' %>" data-period="<%= slot.period %>">
           <!-- Time Indicator -->
-          <div class="flex items-start space-x-4">
-            <div class="flex-shrink-0 w-16 pt-1">
-              <div class="text-sm font-medium text-gray-900"><%= slot.time.start %></div>
+          <div class="flex items-start space-x-2 sm:space-x-4">
+            <div class="flex-shrink-0 w-14 sm:w-16 pt-1">
+              <div class="text-xs sm:text-sm font-medium text-gray-900"><%= slot.time.start %></div>
               <div class="text-xs text-gray-500"><%= slot.time.end %></div>
-              <div class="text-xs text-blue-600 font-medium mt-1">P<%= slot.period %></div>
+              <div class="text-xs text-blue-600 font-medium mt-0.5 sm:mt-1">P<%= slot.period %></div>
             </div>
 
             <!-- Content Card -->
             <div class="flex-1 min-w-0">
               <% if (!slot.isEmpty) { %>
                 <!-- Active Class -->
-                <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow duration-200">
+                <div class="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow duration-200">
                   <div class="flex items-start justify-between mb-2">
                     <div class="flex-1 min-w-0">
-                      <h3 class="font-semibold text-gray-900 text-sm truncate"><%= slot.courseCode %></h3>
-                      <p class="text-gray-700 text-sm mt-1 leading-relaxed"><%= slot.courseName %></p>
+                      <h3 class="font-semibold text-gray-900 text-xs sm:text-sm truncate"><%= slot.courseCode %></h3>
+                      <p class="text-gray-700 text-xs sm:text-sm mt-0.5 sm:mt-1 leading-relaxed"><%= slot.courseName %></p>
                     </div>
                     <div class="ml-2 flex-shrink-0">
-                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         Active
                       </span>
                     </div>
                   </div>
                   
-                  <div class="space-y-2 mt-3">
-                    <div class="flex items-center text-sm text-gray-600">
+                  <div class="space-y-1.5 sm:space-y-2 mt-2 sm:mt-3">
+                    <div class="flex items-center text-xs sm:text-sm text-gray-600">
                       <i class="fas fa-map-marker-alt w-4 text-red-500"></i>
-                      <span class="ml-2"><%= slot.venue %></span>
+                      <span class="ml-2 truncate"><%= slot.venue %></span>
                     </div>
-                    <div class="flex items-center text-sm text-gray-600">
+                    <div class="flex items-center text-xs sm:text-sm text-gray-600">
                       <i class="fas fa-chalkboard-teacher w-4 text-green-500"></i>
-                      <span class="ml-2"><%= slot.faculty %></span>
+                      <span class="ml-2 truncate"><%= slot.faculty %></span>
                     </div>
                   </div>
                 </div>
               <% } else { %>
                 <!-- Free Period -->
-                <div class="bg-gray-50 rounded-xl p-4 border-2 border-dashed border-gray-200">
+                <div class="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border-2 border-dashed border-gray-200">
                   <div class="text-center">
-                    <i class="fas fa-coffee text-2xl text-gray-400 mb-2"></i>
-                    <p class="text-gray-500 text-sm font-medium">Free Period</p>
-                    <p class="text-gray-400 text-xs mt-1">Take a break!</p>
+                    <i class="fas fa-coffee text-xl sm:text-2xl text-gray-400 mb-1 sm:mb-2"></i>
+                    <p class="text-gray-500 text-xs sm:text-sm font-medium">Free Period</p>
+                    <p class="text-gray-400 text-xs mt-0.5 sm:mt-1">Take a break!</p>
                   </div>
                 </div>
               <% } %>
@@ -116,24 +116,24 @@
 
     <!-- Empty State -->
     <% if (schedule.length === 0) { %>
-      <div class="text-center py-12">
-        <i class="fas fa-calendar-times text-4xl text-gray-300 mb-4"></i>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No Classes Today</h3>
-        <p class="text-gray-500">Enjoy your free day!</p>
+      <div class="text-center py-8 sm:py-12">
+        <i class="fas fa-calendar-times text-3xl sm:text-4xl text-gray-300 mb-3 sm:mb-4"></i>
+        <h3 class="text-base sm:text-lg font-medium text-gray-900 mb-1 sm:mb-2">No Classes Today</h3>
+        <p class="text-sm text-gray-500">Enjoy your free day!</p>
       </div>
     <% } %>
 
     <!-- Quick Actions -->
-    <div class="mt-8 bg-white rounded-2xl p-4 shadow-sm">
-      <h3 class="font-semibold text-gray-900 mb-3 text-sm">Quick Actions</h3>
-      <div class="grid grid-cols-2 gap-3">
-        <a href="/student/subjects" class="flex items-center justify-center p-3 bg-blue-50 rounded-xl text-blue-600 hover:bg-blue-100 transition-colors duration-200">
-          <i class="fas fa-book mr-2"></i>
-          <span class="text-sm font-medium">My Subjects</span>
+    <div class="mt-6 sm:mt-8 bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm">
+      <h3 class="font-semibold text-gray-900 mb-2 sm:mb-3 text-xs sm:text-sm">Quick Actions</h3>
+      <div class="grid grid-cols-2 gap-2 sm:gap-3">
+        <a href="/student/subjects" class="flex items-center justify-center p-2 sm:p-3 bg-blue-50 rounded-lg sm:rounded-xl text-blue-600 hover:bg-blue-100 transition-colors duration-200">
+          <i class="fas fa-book mr-1.5 sm:mr-2"></i>
+          <span class="text-xs sm:text-sm font-medium">My Subjects</span>
         </a>
-        <a href="/student/calendar" class="flex items-center justify-center p-3 bg-green-50 rounded-xl text-green-600 hover:bg-green-100 transition-colors duration-200">
-          <i class="fas fa-calendar mr-2"></i>
-          <span class="text-sm font-medium">Full Calendar</span>
+        <a href="/student/calendar" class="flex items-center justify-center p-2 sm:p-3 bg-green-50 rounded-lg sm:rounded-xl text-green-600 hover:bg-green-100 transition-colors duration-200">
+          <i class="fas fa-calendar mr-1.5 sm:mr-2"></i>
+          <span class="text-xs sm:text-sm font-medium">Full Calendar</span>
         </a>
       </div>
     </div>
@@ -244,13 +244,17 @@
 
   /* Responsive adjustments */
   @media (max-width: 380px) {
-    .grid-cols-3 {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.5rem;
+    .schedule-item {
+      margin-bottom: 0.75rem;
     }
     
-    .space-x-4 > :not([hidden]) ~ :not([hidden]) {
-      margin-left: 0.75rem;
+    .time-indicator {
+      font-size: 0.75rem;
+    }
+    
+    .venue-text, .faculty-text {
+      font-size: 0.75rem;
+      line-height: 1.25;
     }
   }
 

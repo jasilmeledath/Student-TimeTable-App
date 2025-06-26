@@ -78,6 +78,6 @@ router.post('/reset-password',
 );
 
 // Logout route
-router.get('/logout', authController.logout);
+router.post('/logout', authController.logout);
 
 module.exports = router; 
