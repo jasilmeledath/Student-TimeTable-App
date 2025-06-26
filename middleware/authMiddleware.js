@@ -1,11 +1,22 @@
+/**
+ * Authentication Middleware Module
+ * Provides middleware functions for authentication, session management,
+ * and user activity logging
+ * @module middleware/authMiddleware
+ */
+
 const geoip = require('geoip-lite');
 const ActivityLog = require('../models/ActivityLog');
 
 /**
- * Middleware to check if user is authenticated
+ * Verifies user authentication status
+ * Redirects to login page if user is not authenticated
+ * Sets user data on request object if authenticated
+ * 
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
- * @param {Function} next - Express next function
+ * @param {Function} next - Express next middleware function
+ * @returns {void}
  */
 exports.checkAuth = (req, res, next) => {
   if (!req.session.user) {
@@ -18,10 +29,13 @@ exports.checkAuth = (req, res, next) => {
 };
 
 /**
- * Middleware to prevent logged-in users from accessing auth pages
+ * Prevents authenticated users from accessing login-related pages
+ * Redirects to appropriate dashboard based on user role
+ * 
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
- * @param {Function} next - Express next function
+ * @param {Function} next - Express next middleware function
+ * @returns {void}
  */
 exports.preventReLogin = (req, res, next) => {
   if (req.session.user) {
@@ -31,10 +45,13 @@ exports.preventReLogin = (req, res, next) => {
 };
 
 /**
- * Middleware to check if user needs to change default password
+ * Enforces password change for first-time logins
+ * Redirects to password change page if user hasn't changed default password
+ * 
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
- * @param {Function} next - Express next function
+ * @param {Function} next - Express next middleware function
+ * @returns {void}
  */
 exports.checkPasswordChange = (req, res, next) => {
   if (req.session.user && req.session.user.isFirstLogin && 
@@ -46,22 +63,27 @@ exports.checkPasswordChange = (req, res, next) => {
 };
 
 /**
- * Middleware to log user activity with location
+ * Logs user activity with geolocation data
+ * Tracks user actions and locations for security monitoring
+ * Continues execution even if logging fails
+ * 
+ * @async
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
- * @param {Function} next - Express next function
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>}
  */
 exports.logActivity = async (req, res, next) => {
   try {
     if (!req.session.user) return next();
 
-    // Get IP address
+    // Extract client IP address from request
     const ip = req.ip || 
                req.connection.remoteAddress || 
                req.socket.remoteAddress || 
                req.connection.socket.remoteAddress;
 
-    // Get location data
+    // Resolve geolocation data from IP
     const geo = geoip.lookup(ip);
     const location = {
       ip,
@@ -75,13 +97,13 @@ exports.logActivity = async (req, res, next) => {
       } : {})
     };
 
-    // Determine action and entity type from request
+    // Map HTTP methods to activity types
     const action = req.method === 'GET' ? 'view' : 
                   req.method === 'POST' ? 'create' :
                   req.method === 'PUT' ? 'update' :
                   req.method === 'DELETE' ? 'delete' : 'view';
 
-    // Log the activity
+    // Record activity in database
     await ActivityLog.logActivity({
       userId: req.session.user._id,
       userType: req.session.user.isAdmin ? 'Admin' : 'Student',
@@ -93,15 +115,18 @@ exports.logActivity = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Activity logging error:', error);
-    next(); // Continue even if logging fails
+    next(); // Proceed with request even if logging fails
   }
 };
 
 /**
- * Middleware to attach user data to response locals
+ * Exposes user data to view templates
+ * Makes authentication status and user role available in views
+ * 
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
- * @param {Function} next - Express next function
+ * @param {Function} next - Express next middleware function
+ * @returns {void}
  */
 exports.attachUserData = (req, res, next) => {
   res.locals.user = req.session.user || null;

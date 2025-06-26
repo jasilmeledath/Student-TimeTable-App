@@ -1,3 +1,9 @@
+/**
+ * Authentication Controller
+ * Handles user authentication, password management, and session control
+ * @module controllers/auth/authController
+ */
+
 const bcrypt = require('bcryptjs');
 const Student = require('../../models/Student');
 const ActivityLog = require('../../models/ActivityLog');
@@ -7,18 +13,22 @@ const geoLocator = require('../../helpers/geoLocator');
 const logger = require('../../helpers/logger');
 
 /**
- * Handle student login
+ * Authenticates a student and creates a session
+ * @async
  * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body containing login credentials
+ * @param {string} req.body.rollNumber - Student's roll number
+ * @param {string} req.body.password - Student's password
  * @param {Object} res - Express response object
+ * @returns {Promise<void>} Redirects to appropriate page based on authentication result
  */
 exports.login = async (req, res) => {
   try {
     const { rollNumber, password } = req.body;
     logger.info('Login attempt', { rollNumber });
 
-    // Find student by roll number
+    // Validate student credentials
     const student = await Student.findOne({ studentId: rollNumber.toUpperCase() });
-    console.log("++++++++++++++++++++++++++++++++++++++",student.courses);
     
     if (!student) {
       logger.warn('Login failed: Invalid roll number', { rollNumber });
@@ -26,7 +36,6 @@ exports.login = async (req, res) => {
       return res.redirect('/auth/login');
     }
 
-    // Verify password
     const isMatch = await student.comparePassword(password);
     if (!isMatch) {
       logger.warn('Login failed: Invalid password', { rollNumber });
@@ -34,17 +43,17 @@ exports.login = async (req, res) => {
       return res.redirect('/auth/login');
     }
 
-    // Get location data
+    // Track login location for security
     const ip = req.ip || 
                req.connection.remoteAddress || 
                req.socket.remoteAddress || 
                req.connection.socket.remoteAddress;
     const location = geoLocator.getLocationFromIP(ip);
 
-    // Update login info
+    // Update student's login metadata
     await student.updateLoginInfo(location);
 
-    // Log activity
+    // Record login activity
     await ActivityLog.logActivity({
       userId: student._id,
       userType: 'Student',
@@ -53,9 +62,9 @@ exports.login = async (req, res) => {
       location
     });
 
-    // Set session
+    // Initialize session with user data
     req.session.user = {
-      _id: student._id.toString(),  // Convert ObjectId to string
+      _id: student._id.toString(),
       studentId: student.studentId,
       name: student.name,
       isFirstLogin: student.isFirstLogin,
@@ -71,7 +80,7 @@ exports.login = async (req, res) => {
       isAdmin: student.isAdmin
     });
 
-    // Determine redirect URL based on user status
+    // Determine appropriate redirect based on user status
     let redirectUrl = '/student/timetable';
     
     if (student.isFirstLogin) {
@@ -85,7 +94,6 @@ exports.login = async (req, res) => {
       logger.info('Redirecting to student timetable', { rollNumber });
     }
 
-    // Perform redirect
     return res.redirect(redirectUrl);
   } catch (error) {
     logger.error('Login error:', {
@@ -99,12 +107,19 @@ exports.login = async (req, res) => {
 };
 
 /**
- * Handle password change
+ * Updates student's password and marks first login complete
+ * @async
  * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body containing password data
+ * @param {string} req.body.currentPassword - Student's current password
+ * @param {string} req.body.newPassword - Student's new password
+ * @param {string} req.body.confirmPassword - Confirmation of new password
  * @param {Object} res - Express response object
+ * @returns {Promise<void>} Redirects with success or error message
  */
 exports.changePassword = async (req, res) => {
   try {
+    // Verify session exists
     if (!req.session.user || !req.session.user._id) {
       logger.warn('Password change failed: No session user');
       req.flash('error_msg', 'Please log in to change your password');
@@ -116,14 +131,14 @@ exports.changePassword = async (req, res) => {
 
     const { currentPassword, newPassword, confirmPassword } = req.body;
 
-    // Validate password match
+    // Validate password confirmation
     if (newPassword !== confirmPassword) {
       logger.warn('Password change failed: Passwords do not match', { userId });
       req.flash('error_msg', 'New passwords do not match');
       return res.redirect('/auth/change-password');
     }
 
-    // Find student
+    // Verify student exists
     const student = await Student.findById(userId);
     if (!student) {
       logger.warn('Password change failed: Student not found', { userId });
@@ -139,18 +154,18 @@ exports.changePassword = async (req, res) => {
       return res.redirect('/auth/change-password');
     }
 
-    // Update password
-    student.password = newPassword;  // Set plain password, model will hash it
+    // Update password and first login status
+    student.password = newPassword;
     student.isFirstLogin = false;
-    await student.save();  // Let the model's middleware handle hashing
+    await student.save();
 
-    // Update session while preserving other user data
+    // Update session data
     req.session.user = {
-      ...req.session.user,  // Keep existing session data
-      isFirstLogin: false,  // Update only what changed
+      ...req.session.user,
+      isFirstLogin: false,
     };
 
-    // Log activity
+    // Record password change activity
     await ActivityLog.logActivity({
       userId: student._id,
       userType: 'Student',
@@ -174,15 +189,20 @@ exports.changePassword = async (req, res) => {
 };
 
 /**
- * Handle forgot password request
+ * Initiates password reset process by sending OTP
+ * @async
  * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body containing student info
+ * @param {string} req.body.rollNo - Student's roll number
+ * @param {string} req.body.email - Student's email address
  * @param {Object} res - Express response object
+ * @returns {Promise<void>} Redirects with success or error message
  */
 exports.forgotPassword = async (req, res) => {
   try {
     const { rollNo, email } = req.body;
 
-    // Find student
+    // Verify student exists with provided credentials
     const student = await Student.findOne({ 
       rollNo: rollNo.toUpperCase(),
       email: email.toLowerCase()
@@ -193,10 +213,10 @@ exports.forgotPassword = async (req, res) => {
       return res.redirect('/auth/forgot-password');
     }
 
-    // Generate OTP
+    // Generate and store OTP
     const otp = otpGenerator.generateOTP();
     student.otpToken = await bcrypt.hash(otp, 10);
-    student.otpExpires = otpGenerator.generateExpiryTime(10); // 10 minutes
+    student.otpExpires = otpGenerator.generateExpiryTime(10); // 10 minutes expiry
     await student.save();
 
     // Send OTP email
@@ -212,9 +232,16 @@ exports.forgotPassword = async (req, res) => {
 };
 
 /**
- * Handle password reset with OTP
+ * Handles password reset with OTP
+ * @async
  * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body containing reset data
+ * @param {string} req.body.rollNo - Student's roll number
+ * @param {string} req.body.otp - OTP for password reset
+ * @param {string} req.body.newPassword - Student's new password
+ * @param {string} req.body.confirmPassword - Confirmation of new password
  * @param {Object} res - Express response object
+ * @returns {Promise<void>} Redirects with success or error message
  */
 exports.resetPassword = async (req, res) => {
   try {
@@ -269,7 +296,7 @@ exports.resetPassword = async (req, res) => {
 };
 
 /**
- * Handle logout
+ * Handles logout
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */

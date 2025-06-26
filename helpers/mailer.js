@@ -1,7 +1,17 @@
+/**
+ * Email Service Module
+ * Provides email functionality for user notifications and authentication
+ * Configures and manages Nodemailer transport for sending emails
+ * @module helpers/mailer
+ */
+
 const nodemailer = require('nodemailer');
 
 /**
  * Email transport configuration
+ * Uses environment variables for SMTP settings
+ * Supports both secure (465) and non-secure ports
+ * 
  * @type {nodemailer.Transporter}
  */
 const transporter = nodemailer.createTransport({
@@ -15,10 +25,15 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
- * Send password reset email with OTP
+ * Sends password reset email containing OTP
+ * Includes formatted HTML template with OTP display
+ * Sets 10-minute expiration notice
+ * 
+ * @async
  * @param {string} to - Recipient email address
- * @param {string} otp - One-time password
- * @returns {Promise<void>}
+ * @param {string} otp - One-time password for verification
+ * @returns {Promise<void>} Resolves when email is sent
+ * @throws {Error} If email sending fails
  */
 exports.sendOTPEmail = async (to, otp) => {
   const mailOptions = {
@@ -40,11 +55,16 @@ exports.sendOTPEmail = async (to, otp) => {
 };
 
 /**
- * Send password reset link email
+ * Sends password reset link via email
+ * Includes formatted HTML template with reset button
+ * Provides fallback URL for button failure
+ * 
+ * @async
  * @param {string} to - Recipient email address
- * @param {string} resetToken - Password reset token
- * @param {string} resetUrl - Password reset URL
- * @returns {Promise<void>}
+ * @param {string} resetToken - Unique token for password reset
+ * @param {string} resetUrl - Complete URL for password reset page
+ * @returns {Promise<void>} Resolves when email is sent
+ * @throws {Error} If email sending fails
  */
 exports.sendResetLinkEmail = async (to, resetToken, resetUrl) => {
   const mailOptions = {
@@ -71,12 +91,17 @@ exports.sendResetLinkEmail = async (to, resetToken, resetUrl) => {
 };
 
 /**
- * Send welcome email to new student
+ * Sends welcome email to newly registered students
+ * Includes login credentials and security instructions
+ * Notifies about required password change on first login
+ * 
+ * @async
  * @param {string} to - Recipient email address
- * @param {string} name - Student's name
- * @param {string} rollNo - Student's roll number
- * @param {string} defaultPassword - Default password
- * @returns {Promise<void>}
+ * @param {string} name - Student's full name
+ * @param {string} rollNo - Student's roll number for login
+ * @param {string} defaultPassword - Temporary password for first login
+ * @returns {Promise<void>} Resolves when email is sent
+ * @throws {Error} If email sending fails
  */
 exports.sendWelcomeEmail = async (to, name, rollNo, defaultPassword) => {
   const mailOptions = {
@@ -102,8 +127,12 @@ exports.sendWelcomeEmail = async (to, name, rollNo, defaultPassword) => {
 };
 
 /**
- * Verify email transport configuration
- * @returns {Promise<boolean>} True if configuration is valid
+ * Validates email transport configuration
+ * Tests SMTP connection and authentication
+ * Used during application startup to ensure email functionality
+ * 
+ * @async
+ * @returns {Promise<boolean>} True if configuration is valid and connection test succeeds
  */
 exports.verifyEmailConfig = async () => {
   try {

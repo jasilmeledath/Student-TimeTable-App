@@ -1,3 +1,10 @@
+/**
+ * Authentication Routes Module
+ * Handles all authentication-related routes including login, logout,
+ * password management, and account recovery
+ * @module routes/auth
+ */
+
 const express = require('express');
 const router = express.Router();
 const logger = require('../helpers/logger');
@@ -12,12 +19,20 @@ const {
   handleValidationErrors
 } = require('../middleware/validations/authValidation');
 
-// Login routes
+/**
+ * Authentication Routes Configuration
+ */
+
+/**
+ * Login Routes
+ * GET  /auth/login - Displays login form
+ * POST /auth/login - Processes login attempt
+ */
 router.get('/login', preventReLogin, (req, res) => {
   res.render('auth/login', {
     title: 'Login',
     layout: 'layouts/auth',
-    script: '' // Add empty script to prevent undefined error
+    script: null // Prevents undefined script error in template
   });
 });
 
@@ -28,12 +43,17 @@ router.post('/login',
   authController.login
 );
 
-// Password change routes
+/**
+ * Password Change Routes
+ * GET  /auth/change-password - Displays password change form
+ * POST /auth/change-password - Processes password change request
+ * Requires authentication
+ */
 router.get('/change-password', checkAuth, (req, res) => {
   res.render('auth/change-password', {
     title: 'Change Password',
     layout: 'layouts/auth',
-    script: '', // Add empty script to prevent undefined error
+    script: null, // Prevents undefined script error in template
     user: req.session.user
   });
 });
@@ -45,12 +65,17 @@ router.post('/change-password',
   authController.changePassword
 );
 
-// Forgot password routes
+/**
+ * Password Recovery Routes
+ * GET  /auth/forgot-password - Displays password recovery form
+ * POST /auth/forgot-password - Initiates password recovery process
+ * Prevents authenticated users from accessing
+ */
 router.get('/forgot-password', preventReLogin, (req, res) => {
   res.render('auth/forgot-password', {
     title: 'Forgot Password',
     layout: 'layouts/auth',
-    script: '' // Add empty script to prevent undefined error
+    script: null // Prevents undefined script error in template
   });
 });
 
@@ -61,12 +86,17 @@ router.post('/forgot-password',
   authController.forgotPassword
 );
 
-// Reset password routes
+/**
+ * Password Reset Routes
+ * GET  /auth/reset-password - Displays password reset form
+ * POST /auth/reset-password - Processes password reset request
+ * Prevents authenticated users from accessing
+ */
 router.get('/reset-password', preventReLogin, (req, res) => {
   res.render('auth/reset-password', {
     title: 'Reset Password',
     layout: 'layouts/auth',
-    script: '' // Add empty script to prevent undefined error
+    script: null // Prevents undefined script error in template
   });
 });
 
@@ -77,7 +107,10 @@ router.post('/reset-password',
   authController.resetPassword
 );
 
-// Logout route
+/**
+ * Logout Route
+ * POST /auth/logout - Ends user session and redirects to login
+ */
 router.post('/logout', authController.logout);
 
 module.exports = router; 
